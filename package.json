@@ -1,0 +1,19 @@
+{
+  "name": "listview-swipe-out",
+  "widgetName": "ListviewSwipeOut",
+  "version": "0.1.0",
+  "description": "NOT FOR PRODCTION Swiping listview items out",
+  "copyright": "Flock of Birds",
+  "author": "Andries Smit",
+  "private": true,
+  "dependencies": {},
+  "devDependencies": {
+    "eslint": "^3.11.1",
+    "grunt": "1.0.1",
+    "grunt-contrib-clean": "^1.0.0",
+    "grunt-contrib-compress": "^1.2.0",
+    "grunt-contrib-copy": "^1.0.0",
+    "grunt-contrib-csslint": "^1.0.0",
+    "grunt-contrib-watch": "^1.0.0"
+  }
+}
