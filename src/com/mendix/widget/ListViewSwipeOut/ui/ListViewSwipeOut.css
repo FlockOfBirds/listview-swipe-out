@@ -40,7 +40,7 @@
 }
 
 .removed-from-list {
-    opacity: 0; 
+    opacity: 0;
     height: 0;
     border: 0 !important;
 }
