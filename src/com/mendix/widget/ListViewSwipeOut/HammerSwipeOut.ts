@@ -2,9 +2,9 @@ import * as Hammer from "hammerjs";
 import * as domClass from "dojo/dom-class";
 import * as domStyle from "dojo/dom-style";
 
-type Direction = "right" | "left" | "none";
+type Direction = "right" | "left";
 
-export default class HammerSwipeOut {
+class HammerSwipeOut {
     private direction: number;
     private container: HTMLElement;
     private swipePane: HTMLElement;
@@ -12,11 +12,13 @@ export default class HammerSwipeOut {
     private containerClass: string;
     private currentIndex: number;
     private hammer: HammerManager;
+    private onSwipeCallback: (direction: Direction) => void;
 
     //TODO: Add test for phonegap and normal mobile browser
 
-    constructor(container: HTMLElement, direction: number) {
+    constructor(container: HTMLElement, direction: number, callback: (direction: Direction) => void) {
         this.container = container;
+        this.onSwipeCallback = callback;
         this.containerClass = this.container.className;
         this.direction = direction;
         this.containerSize = this.container.offsetWidth;
@@ -82,10 +84,10 @@ export default class HammerSwipeOut {
         domStyle.set(this.swipePane, {
             left: pos + "px"
         });
-        this.hide();
+        this.hide(direction);
     }
 
-    private hide() {
+    private hide(direction: Direction) {
         const slideUpTime = 2000;
         const removeItemTime = 1000; // Should be done with next touch?
         const switchBackgroundTime = 600;
@@ -100,6 +102,7 @@ export default class HammerSwipeOut {
                 domClass.add(this.container, "remove");
                 setTimeout(() => {
                     domClass.add(this.container, "hide");
+                    this.onSwipeCallback(direction);
                     // TODO: Add setting to control whether removal should occur or not
                     // TODO: Add microflow here. Add user setting to decide when actual microflow execution occurs
                 }, removeItemTime)
@@ -107,3 +110,5 @@ export default class HammerSwipeOut {
         }, switchBackgroundTime);
     }
 }
+
+export { HammerSwipeOut, Direction };

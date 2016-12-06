@@ -6,13 +6,15 @@ import * as domClass from "dojo/dom-class";
 import * as registry from "dijit/registry";
 
 import * as Hammer from "hammerjs";
-import HammerSwipeOut from "./HammerSwipeOut";
+import { Direction, HammerSwipeOut } from "./HammerSwipeOut";
 
 import "./ui/ListViewSwipeOut.css";
 
 class ListViewSwipeOut extends WidgetBase {
     // Properties from Mendix modeler
     targetName: string;
+    onLeftSwipe: string;
+    onRightSwipe: string;
 
     private swipeClass: string;
     private targetWidget: mxui.widget._WidgetBase;
@@ -29,7 +31,8 @@ class ListViewSwipeOut extends WidgetBase {
 
         dojoAspect.after(this.targetWidget, "_renderData", () => {
             Hammer.each(document.querySelectorAll(".mx-listview-item"), (container: HTMLElement) => {
-                new HammerSwipeOut(container, Hammer.DIRECTION_HORIZONTAL);
+                new HammerSwipeOut(container, Hammer.DIRECTION_HORIZONTAL, (direction: Direction) =>
+                    this.handleSwipe(direction));
             }, this);
         });
 
@@ -53,6 +56,25 @@ class ListViewSwipeOut extends WidgetBase {
             }
         } else {
             logger.error("Unable to find listview with name " + this.targetName);
+        }
+    }
+
+    private handleSwipe(direction: Direction) {
+        const guids = this.contextObject ? [ this.contextObject.getGuid() ] : [];
+        if (direction === "left") {
+            this.executeAction(this.onLeftSwipe, guids);
+        } else {
+            this.executeAction(this.onRightSwipe, guids);
+        }
+    }
+
+    private executeAction(microflow: string, guids: string[]) {
+        if (microflow) {
+            window.mx.ui.action(microflow, {
+                error: (error: Error) =>
+                    window.mx.ui.error(`An error occurred while executing action: ${error.message}`, true),
+                params: { guids }
+            });
         }
     }
 }
