@@ -29,6 +29,7 @@ module.exports = {
         "dojo/_base/declare",
         "dojo/aspect",
         "dojo/dom-class",
+        "dojo/dom-style",
         "dojo/query",
         "dijit/registry",
         "dojo/dom-construct"

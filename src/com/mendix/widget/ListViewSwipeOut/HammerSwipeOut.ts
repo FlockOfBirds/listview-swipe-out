@@ -1,21 +1,15 @@
 import * as Hammer from "hammerjs";
 import * as domClass from "dojo/dom-class";
-
-interface Container extends HTMLElement {
-    [key: string]: any;
-}
-
-interface Panes extends HTMLElement {
-    [key: string]: any;
-}
+import * as domStyle from "dojo/dom-style";
 
 type Direction = "right" | "left" | "none";
 
 export default class HammerSwipeOut {
-    private container: Container;
     private direction: number;
-    private panes: Panes[];
+    private container: HTMLElement;
+    private swipePane: HTMLElement;
     private containerSize: number;
+    private containerClass: string;
     private currentIndex: number;
     private hammer: HammerManager;
 
@@ -23,103 +17,93 @@ export default class HammerSwipeOut {
 
     constructor(container: HTMLElement, direction: number) {
         this.container = container;
+        this.containerClass = this.container.className;
         this.direction = direction;
-        this.panes = [ this.container.firstChild.firstChild.firstChild as HTMLElement ];
         this.containerSize = this.container.offsetWidth;
         this.currentIndex = 0;
-        this.hammer = new Hammer.Manager(this.container);
+        this.registerEvents(this.container);
+
+        this.swipePane = this.container.getElementsByClassName("swipe-foreground")[0] as HTMLElement;
+
+        domStyle.set(this.swipePane, {
+            position: "relative"
+        });
+    }
+
+    private registerEvents(node: HTMLElement) {
+        this.hammer = new Hammer.Manager(node);
         this.hammer.add(new Hammer.Pan({ direction: Hammer.DIRECTION_HORIZONTAL }));
         this.hammer.on("panstart panmove panend pancancel", (event: HammerInput) => this.onPan(event));
     }
 
-    private show(showIndexIn: number, percentIn?: number, animate?: boolean) {
-        let showIndex = Math.max(0, Math.min(showIndexIn, this.panes.length - 1));
-        let percent = percentIn || 0;
-        let className = this.container.className;
-        let paneIndex = 0;
-        let pos: number;
-        let translate: string;
-        let hundredPercent = 100;
+    private onPan(ev: HammerInput) {
+        const maximumPercentage = 100;
+        const percentageThreshold = 20;
+        let currentPercentage = (maximumPercentage / this.containerSize) * ev.deltaX;
+        let animate = false;
+        let direction: Direction;
+        if (ev.type === "panend" || ev.type === "pancancel") {
+            if (Math.abs(currentPercentage) > percentageThreshold && ev.type === "panend") {
+                direction = currentPercentage < 0 ? "left" : "right";
+                this.out(direction, true);
+                return;
+            }
+            currentPercentage = 0;
+            animate = true;
+        }
+        this.show(currentPercentage, animate);
+    }
+
+    private show(currentPercentage: number = 0, animate?: boolean) {
+        const hundredPercent = 100;
+        const pos = (this.containerSize / hundredPercent) * currentPercentage;
 
         // TODO: Add classes for when swiping left or right begins. Remove classes after swiping is done or cancelled
         if (animate) {
-            if (className.indexOf("animate") === -1) {
-                this.container.className += " animate";
-            }
-        } else if (className.indexOf("animate") !== -1) {
-            this.container.className = className.replace("animate", "").trim();
+            domClass.add(this.container, "animate");
+        } else {
+            domClass.remove(this.container, "animate");
         }
-        pos = (this.containerSize / hundredPercent) *
-            (((paneIndex - showIndex) * hundredPercent) + percent);
 
-        // TODO: Check on the moztransform
-        translate = "translate3d(" + pos + "px, 0, 0)";
-        this.panes[paneIndex].style.transform = translate;
-        // this.panes[paneIndex].style.mozTransform = translate;
-        this.panes[paneIndex].style.webkitTransform = translate;
-        this.currentIndex = showIndex;
+        domStyle.set(this.swipePane, {
+            left: pos + "px"
+        });
     }
 
     private out(direction: Direction, animate?: boolean) {
-        let className = this.container.className;
-        let paneIndex = 0;
-        let pos: number;
-        let translate: string;
+        let pos = direction === "left" ? -this.containerSize : this.containerSize;
 
         if (animate) {
-            if (className.indexOf("animate") === -1) {
-                this.container.className += " animate";
-            }
-        } else if (className.indexOf("animate") !== -1) {
-            this.container.className = className.replace("animate", "").trim();
+            domClass.add(this.container, "animate");
+        } else {
+            domClass.remove(this.container, "animate");
         }
-        // pos = (this.containerSize / hundredPercent) *
-        //        (((paneIndex - showIndex) * hundredPercent) + percent);
-        pos = direction === "left" ? -this.containerSize : this.containerSize;
-        translate = "translate3d(" + pos + "px, 0, 0)";
-        this.panes[paneIndex].style.transform = translate;
-        // this.panes[paneIndex].style.mozTransform = translate;
-        this.panes[paneIndex].style.webkitTransform = translate;
+
+        domStyle.set(this.swipePane, {
+            left: pos + "px"
+        });
         this.hide();
     }
 
     private hide() {
-        let backgroundNodeNode = (this.container.firstChild.firstChild as HTMLElement).children[1] as HTMLElement; // Ugly
-        let container = this.container;
-        let timeoutAnimation = 600;
-        let timeoutRemove = 2000; // Should be done with next touch?
+        const slideUpTime = 2000;
+        const removeItemTime = 1000; // Should be done with next touch?
+        const switchBackgroundTime = 600;
+        domStyle.set(this.container, {
+            height: this.container.clientHeight + "px"
+        });
 
-        setTimeout(function() {
-            backgroundNodeNode.style.display = "none";
-            setTimeout(function() {
-                domClass.add(container, "removed-from-list");
-                // TODO: Add setting to control whether removal should occur or not
-                // TODO: Add microflow here. Add user setting to decide when actual microflow execution occurs
-            }, timeoutRemove);
-        }, timeoutAnimation);
-    }
-
-    private onPan(ev: HammerInput) {
-        let numberInPercent = 100;
-        let percentageThreshold = 20;
-        let percent = (numberInPercent / this.containerSize) * ev.deltaX;
-        let animate = false;
-        let direction: Direction = "none";
-        if (ev.type === "panend" || ev.type === "pancancel") {
-            if (Math.abs(percent) > percentageThreshold && ev.type === "panend") {
-                if (percent < 0) {
-                    // window.logger.debug("left out");
-                    direction = "left";
-                } else {
-                    // window.logger.debug("right out");
-                    direction = "right";
-                }
-                this.out(direction, true);
-                return;
-            }
-            percent = 0;
-            animate = true;
-        }
-        this.show(this.currentIndex, percent, animate);
+        setTimeout(() => {
+            domClass.add(this.container.getElementsByClassName("swipe-background")[0] as HTMLElement, "hide");
+            setTimeout(() => {
+                domStyle.set(this.container, { height: 0 });
+                domClass.add(this.container, "remove");
+                setTimeout(() => {
+                    domClass.add(this.container, "hide");
+                    // TODO: Add setting to control whether removal should occur or not
+                    // TODO: Add microflow here. Add user setting to decide when actual microflow execution occurs
+                }, removeItemTime)
+            },slideUpTime);
+        }, switchBackgroundTime);
     }
 }

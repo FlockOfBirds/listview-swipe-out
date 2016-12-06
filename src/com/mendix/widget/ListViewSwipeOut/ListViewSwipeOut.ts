@@ -16,9 +16,7 @@ class ListViewSwipeOut extends WidgetBase {
 
     private swipeClass: string;
     private targetWidget: mxui.widget._WidgetBase;
-    private targetNode: dojo.NodeList | HTMLElement;
-    // private loadMoreListItemNone: any;
-    // private enableDemo = false;
+    private targetNode: HTMLElement;
     private contextObject: mendix.lib.MxObject;
 
     postCreate() {
@@ -30,30 +28,31 @@ class ListViewSwipeOut extends WidgetBase {
         this.contextObject = contextObject;
 
         dojoAspect.after(this.targetWidget, "_renderData", () => {
-            logger.debug(this.id + "_listview._showLoadMoreButton");
             Hammer.each(document.querySelectorAll(".mx-listview-item"), (container: HTMLElement) => {
                 new HammerSwipeOut(container, Hammer.DIRECTION_HORIZONTAL);
-            }, null);
+            }, this);
         });
 
         callback();
     }
 
     private findTarget() {
-        let queryNode = this.domNode.parentNode as HTMLElement;
+        let queryNode = this.domNode.parentNode as Element;
         while (!this.targetNode) {
             this.targetNode = queryNode.querySelector(".mx-name-" + this.targetName) as HTMLElement;
-            if (queryNode === queryNode.parentNode) { // TODO: should be compared to document
-                break;
-            }
+            if (window.document.isEqualNode(queryNode)) { break; }
             queryNode = queryNode.parentNode as HTMLElement;
         }
-        // TODO: check if targetWidget is the right type
+
         if (this.targetNode) {
-            this.targetWidget = registry.byNode(this.targetNode as HTMLElement);
-            domClass.add(this.targetNode as HTMLElement, this.swipeClass);
+            this.targetWidget = registry.byNode(this.targetNode);
+            if (this.targetWidget.hasOwnProperty("_listNode")) {
+                domClass.add(this.targetNode, this.swipeClass);
+            } else {
+                logger.error("Supplied target does not correspond to a listview: " + this.targetName);
+            }
         } else {
-            logger.error("Error: unable to find listview with name " + this.targetName);
+            logger.error("Unable to find listview with name " + this.targetName);
         }
     }
 }

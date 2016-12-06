@@ -3,7 +3,8 @@
     will-change: transform, opacity;
 }
 
-.mx-listview-item.animate, .mx-listview-item.animate .swipe-foreground {
+.mx-listview-item.animate,
+.mx-listview-item.animate .swipe-foreground {
     transition: all .6s;
     -webkit-transition: all .6s;
 }
@@ -39,8 +40,7 @@
     padding: 0;
 }
 
-.removed-from-list {
-    opacity: 0;
-    height: 0;
-    border: 0 !important;
+.remove {
+    -webkit-animation: disapear 1s;
+    animation: disapear 1s;
 }
