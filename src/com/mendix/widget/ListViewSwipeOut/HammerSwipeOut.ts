@@ -2,25 +2,28 @@ import * as Hammer from "hammerjs";
 import * as domClass from "dojo/dom-class";
 import * as domStyle from "dojo/dom-style";
 
+interface SwipeOutOptions {
+    callback: (direction: Direction) => void;
+    callbackDelay: number;
+}
+
 type Direction = "right" | "left";
 
 class HammerSwipeOut {
-    private direction: number;
     private container: HTMLElement;
     private swipePane: HTMLElement;
     private containerSize: number;
     private containerClass: string;
     private currentIndex: number;
     private hammer: HammerManager;
-    private onSwipeCallback: (direction: Direction) => void;
+    private options: SwipeOutOptions;
 
     //TODO: Add test for phonegap and normal mobile browser
 
-    constructor(container: HTMLElement, direction: number, callback: (direction: Direction) => void) {
+    constructor(container: HTMLElement, options: SwipeOutOptions) {
         this.container = container;
-        this.onSwipeCallback = callback;
+        this.options = options;
         this.containerClass = this.container.className;
-        this.direction = direction;
         this.containerSize = this.container.offsetWidth;
         this.currentIndex = 0;
         this.registerEvents(this.container);
@@ -102,11 +105,11 @@ class HammerSwipeOut {
                 domClass.add(this.container, "remove");
                 setTimeout(() => {
                     domClass.add(this.container, "hide");
-                    this.onSwipeCallback(direction);
+                    this.options.callback(direction);
                     // TODO: Add setting to control whether removal should occur or not
                     // TODO: Add microflow here. Add user setting to decide when actual microflow execution occurs
                 }, removeItemTime)
-            },slideUpTime);
+            }, this.options.callbackDelay);
         }, switchBackgroundTime);
     }
 }

@@ -15,6 +15,7 @@ class ListViewSwipeOut extends WidgetBase {
     targetName: string;
     onLeftSwipe: string;
     onRightSwipe: string;
+    microflowTriggerDelay: number;
 
     private swipeClass: string;
     private targetWidget: mxui.widget._WidgetBase;
@@ -28,11 +29,14 @@ class ListViewSwipeOut extends WidgetBase {
 
     update(contextObject: mendix.lib.MxObject, callback: Function) {
         this.contextObject = contextObject;
+        const swipeOutOptions = {
+            callback: (direction: Direction) => this.handleSwipe(direction),
+            callbackDelay: this.microflowTriggerDelay * 1000
+        };
 
         dojoAspect.after(this.targetWidget, "_renderData", () => {
             Hammer.each(document.querySelectorAll(".mx-listview-item"), (container: HTMLElement) => {
-                new HammerSwipeOut(container, Hammer.DIRECTION_HORIZONTAL, (direction: Direction) =>
-                    this.handleSwipe(direction));
+                new HammerSwipeOut(container, swipeOutOptions);
             }, this);
         });
 

@@ -21,5 +21,10 @@
             <description>Microflow to execute after swiping to the right</description>
             <returnType type="Void"/>
         </property>
+        <property key="microflowTriggerDelay" type="integer" required="true" defaultValue="2">
+            <caption>Microflow trigger delay</caption>
+            <category>Behavior</category>
+            <description>How many seconds after swiping should the corresponding microflow be triggered</description>
+        </property>
     </properties>
 </widget>
