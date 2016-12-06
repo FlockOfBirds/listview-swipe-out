@@ -53,9 +53,10 @@ class ListViewSwipeOut extends WidgetBase {
 
         if (this.targetNode) {
             this.targetWidget = registry.byNode(this.targetNode);
-            if (this.targetWidget.hasOwnProperty("_listNode")) {
+            if (this.targetWidget.declaredClass === "mxui.widget.ListView") {
                 domClass.add(this.targetNode, this.swipeClass);
             } else {
+                this.targetWidget = null;
                 logger.error("Supplied target does not correspond to a listview: " + this.targetName);
             }
         } else {

@@ -29,10 +29,6 @@ class HammerSwipeOut {
         this.registerEvents(this.container);
 
         this.swipePane = this.container.getElementsByClassName("swipe-foreground")[0] as HTMLElement;
-
-        domStyle.set(this.swipePane, {
-            position: "relative"
-        });
     }
 
     private registerEvents(node: HTMLElement) {
@@ -50,7 +46,7 @@ class HammerSwipeOut {
         if (ev.type === "panend" || ev.type === "pancancel") {
             if (Math.abs(currentPercentage) > percentageThreshold && ev.type === "panend") {
                 direction = currentPercentage < 0 ? "left" : "right";
-                this.out(direction, true);
+                this.out(direction);
                 return;
             }
             currentPercentage = 0;
@@ -62,6 +58,7 @@ class HammerSwipeOut {
     private show(currentPercentage: number = 0, animate?: boolean) {
         const hundredPercent = 100;
         const pos = (this.containerSize / hundredPercent) * currentPercentage;
+        const translate = "translate3d(" + pos + "px, 0, 0)";
 
         // TODO: Add classes for when swiping left or right begins. Remove classes after swiping is done or cancelled
         if (animate) {
@@ -70,28 +67,18 @@ class HammerSwipeOut {
             domClass.remove(this.container, "animate");
         }
 
-        domStyle.set(this.swipePane, {
-            left: pos + "px"
-        });
+        domStyle.set(this.swipePane, { transform: translate });
     }
 
-    private out(direction: Direction, animate?: boolean) {
+    private out(direction: Direction) {
         let pos = direction === "left" ? -this.containerSize : this.containerSize;
-
-        if (animate) {
-            domClass.add(this.container, "animate");
-        } else {
-            domClass.remove(this.container, "animate");
-        }
-
-        domStyle.set(this.swipePane, {
-            left: pos + "px"
-        });
+        const translate = "translate3d(" + pos + "px, 0, 0)";
+        domClass.add(this.container, "animate");
+        domStyle.set(this.swipePane, { transform: translate });
         this.hide(direction);
     }
 
     private hide(direction: Direction) {
-        const slideUpTime = 2000;
         const removeItemTime = 1000; // Should be done with next touch?
         const switchBackgroundTime = 600;
         domStyle.set(this.container, {
@@ -107,7 +94,6 @@ class HammerSwipeOut {
                     domClass.add(this.container, "hide");
                     this.options.callback(direction);
                     // TODO: Add setting to control whether removal should occur or not
-                    // TODO: Add microflow here. Add user setting to decide when actual microflow execution occurs
                 }, removeItemTime)
             }, this.options.callbackDelay);
         }, switchBackgroundTime);
