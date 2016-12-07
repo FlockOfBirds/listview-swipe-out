@@ -3,11 +3,13 @@ import * as domClass from "dojo/dom-class";
 import * as domStyle from "dojo/dom-style";
 
 interface SwipeOutOptions {
+    afterSwipeAction: AfterSwipeAction;
     callback: (direction: Direction) => void;
     callbackDelay: number;
 }
 
 type Direction = "right" | "left";
+type AfterSwipeAction = "remove" | "none";
 
 class HammerSwipeOut {
     private container: HTMLElement;
@@ -26,15 +28,15 @@ class HammerSwipeOut {
         this.containerClass = this.container.className;
         this.containerSize = this.container.offsetWidth;
         this.currentIndex = 0;
-        this.registerEvents(this.container);
 
-        this.swipePane = this.container.getElementsByClassName("swipe-foreground")[0] as HTMLElement;
-    }
-
-    private registerEvents(node: HTMLElement) {
-        this.hammer = new Hammer.Manager(node);
+        this.hammer = new Hammer.Manager(this.container);
         this.hammer.add(new Hammer.Pan({ direction: Hammer.DIRECTION_HORIZONTAL }));
         this.hammer.on("panstart panmove panend pancancel", (event: HammerInput) => this.onPan(event));
+
+        this.swipePane = this.container.getElementsByClassName("swipe-foreground")[0] as HTMLElement;
+        if (!this.swipePane) {
+            this.swipePane = this.container;
+        }
     }
 
     private onPan(ev: HammerInput) {
@@ -81,23 +83,35 @@ class HammerSwipeOut {
     private hide(direction: Direction) {
         const removeItemTime = 1000; // Should be done with next touch?
         const switchBackgroundTime = 600;
-        domStyle.set(this.container, {
-            height: this.container.clientHeight + "px"
-        });
+        if (this.options.afterSwipeAction === "remove") {
+            domStyle.set(this.container, {
+                height: this.container.offsetHeight + "px"
+            });
 
-        setTimeout(() => {
-            domClass.add(this.container.getElementsByClassName("swipe-background")[0] as HTMLElement, "hide");
             setTimeout(() => {
-                domStyle.set(this.container, { height: 0 });
-                domClass.add(this.container, "remove");
+                const swipeBackground = this.container.getElementsByClassName("swipe-background")[0] as HTMLElement;
+                if (swipeBackground) {
+                    domClass.add(swipeBackground, "hide");
+                }
+
                 setTimeout(() => {
-                    domClass.add(this.container, "hide");
-                    this.options.callback(direction);
-                    // TODO: Add setting to control whether removal should occur or not
-                }, removeItemTime)
+                    domStyle.set(this.container, { height: 0 });
+                    domClass.add(this.container, "remove");
+
+                    setTimeout(() => {
+                        domClass.add(this.container, "hide");
+                        domClass.remove(this.container, "animate");
+                        this.options.callback(direction);
+                    }, removeItemTime)
+                }, this.options.callbackDelay);
+            }, switchBackgroundTime);
+        } else {
+            setTimeout(() => {
+                domClass.remove(this.container, "animate");
+                this.options.callback(direction);
             }, this.options.callbackDelay);
-        }, switchBackgroundTime);
+        }
     }
 }
 
-export { HammerSwipeOut, Direction };
+export { HammerSwipeOut, Direction, AfterSwipeAction, SwipeOutOptions };

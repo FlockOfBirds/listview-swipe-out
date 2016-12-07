@@ -6,7 +6,7 @@ import * as domClass from "dojo/dom-class";
 import * as registry from "dijit/registry";
 
 import * as Hammer from "hammerjs";
-import { Direction, HammerSwipeOut } from "./HammerSwipeOut";
+import { AfterSwipeAction, Direction, HammerSwipeOut, SwipeOutOptions } from "./HammerSwipeOut";
 
 import "./ui/ListViewSwipeOut.css";
 
@@ -16,6 +16,7 @@ class ListViewSwipeOut extends WidgetBase {
     onLeftSwipe: string;
     onRightSwipe: string;
     microflowTriggerDelay: number;
+    afterSwipeAction: AfterSwipeAction;
 
     private swipeClass: string;
     private targetWidget: mxui.widget._WidgetBase;
@@ -29,13 +30,14 @@ class ListViewSwipeOut extends WidgetBase {
 
     update(contextObject: mendix.lib.MxObject, callback: Function) {
         this.contextObject = contextObject;
-        const swipeOutOptions = {
+        const swipeOutOptions: SwipeOutOptions = {
+            afterSwipeAction: this.afterSwipeAction,
             callback: (direction: Direction) => this.handleSwipe(direction),
             callbackDelay: this.microflowTriggerDelay * 1000
         };
 
         dojoAspect.after(this.targetWidget, "_renderData", () => {
-            Hammer.each(document.querySelectorAll(".mx-listview-item"), (container: HTMLElement) => {
+            Hammer.each(this.targetNode.querySelectorAll(".mx-listview-item"), (container: HTMLElement) => {
                 new HammerSwipeOut(container, swipeOutOptions);
             }, this);
         });

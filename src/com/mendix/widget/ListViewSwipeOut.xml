@@ -26,5 +26,14 @@
             <category>Behavior</category>
             <description>How many seconds after swiping should the corresponding microflow be triggered</description>
         </property>
+        <property key="afterSwipeAction" type="enumeration" required="true" defaultValue="remove">
+            <caption>After swipe action</caption>
+            <category>Behavior</category>
+            <description>Visual action to take once swiping is done</description>
+            <enumerationValues>
+                <enumerationValue key="remove">Remove</enumerationValue>
+                <enumerationValue key="none">None</enumerationValue>
+            </enumerationValues>
+        </property>
     </properties>
 </widget>
