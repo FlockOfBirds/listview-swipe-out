@@ -16,9 +16,9 @@ class HammerSwipeOut {
     private swipePane: HTMLElement;
     private containerSize: number;
     private containerClass: string;
-    private currentIndex: number;
     private hammer: HammerManager;
     private options: SwipeOutOptions;
+    private swipedOut: boolean;
 
     //TODO: Add test for phonegap and normal mobile browser
 
@@ -27,7 +27,7 @@ class HammerSwipeOut {
         this.options = options;
         this.containerClass = this.container.className;
         this.containerSize = this.container.offsetWidth;
-        this.currentIndex = 0;
+        this.swipedOut = false;
 
         this.hammer = new Hammer.Manager(this.container);
         this.hammer.add(new Hammer.Pan({ direction: Hammer.DIRECTION_HORIZONTAL }));
@@ -37,6 +37,8 @@ class HammerSwipeOut {
         if (!this.swipePane) {
             this.swipePane = this.container;
         }
+
+        this.registerExtraEvents();
     }
 
     private onPan(ev: HammerInput) {
@@ -62,7 +64,6 @@ class HammerSwipeOut {
         const pos = (this.containerSize / hundredPercent) * currentPercentage;
         const translate = "translate3d(" + pos + "px, 0, 0)";
 
-        // TODO: Add classes for when swiping left or right begins. Remove classes after swiping is done or cancelled
         if (animate) {
             domClass.add(this.container, "animate");
         } else {
@@ -77,39 +78,44 @@ class HammerSwipeOut {
         const translate = "translate3d(" + pos + "px, 0, 0)";
         domClass.add(this.container, "animate");
         domStyle.set(this.swipePane, { transform: translate });
+        this.swipedOut = true;
         this.hide(direction);
     }
 
     private hide(direction: Direction) {
-        const removeItemTime = 1000; // Should be done with next touch?
-        const switchBackgroundTime = 600;
+        const removeItemDelay = 600; // Should be done with next touch?
         if (this.options.afterSwipeAction === "remove") {
-            domStyle.set(this.container, {
-                height: this.container.offsetHeight + "px"
-            });
 
             setTimeout(() => {
-                const swipeBackground = this.container.getElementsByClassName("swipe-background")[0] as HTMLElement;
-                if (swipeBackground) {
-                    domClass.add(swipeBackground, "hide");
-                }
+                domStyle.set(this.container, { "height": 0 });
+                domClass.add(this.container, "animate");
 
                 setTimeout(() => {
-                    domStyle.set(this.container, { height: 0 });
-                    domClass.add(this.container, "remove");
-
-                    setTimeout(() => {
-                        domClass.add(this.container, "hide");
-                        domClass.remove(this.container, "animate");
-                        this.options.callback(direction);
-                    }, removeItemTime)
-                }, this.options.callbackDelay);
-            }, switchBackgroundTime);
+                    domClass.add(this.container, "hide");
+                    domClass.remove(this.container, "animate");
+                    this.options.callback(direction);
+                }, removeItemDelay)
+            }, this.options.callbackDelay);
         } else {
             setTimeout(() => {
                 domClass.remove(this.container, "animate");
                 this.options.callback(direction);
             }, this.options.callbackDelay);
+        }
+    }
+
+    private registerExtraEvents() {
+        if (this.options.afterSwipeAction === "remove") {
+            this.swipePane.addEventListener("transitionend", () => {
+                const swipeBackground = this.container.getElementsByClassName("swipe-background")[0] as HTMLElement;
+                if (swipeBackground && this.swipedOut) {
+                    domStyle.set(this.container, {
+                        "height": this.container.offsetHeight + "px"
+                    });
+                    domClass.add(swipeBackground, "hide");
+
+                }
+            });
         }
     }
 }

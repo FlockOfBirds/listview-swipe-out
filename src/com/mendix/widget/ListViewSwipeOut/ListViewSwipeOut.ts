@@ -15,8 +15,9 @@ class ListViewSwipeOut extends WidgetBase {
     targetName: string;
     onLeftSwipe: string;
     onRightSwipe: string;
-    microflowTriggerDelay: number;
+    microflowTriggerDelay: number; // TODO: Set to milliseconds or ditch the setting
     afterSwipeAction: AfterSwipeAction;
+    // TODO: set config for swipe classes
 
     private swipeClass: string;
     private targetWidget: mxui.widget._WidgetBase;
@@ -36,7 +37,7 @@ class ListViewSwipeOut extends WidgetBase {
             callbackDelay: this.microflowTriggerDelay * 1000
         };
 
-        dojoAspect.after(this.targetWidget, "_renderData", () => {
+        dojoAspect.after(this.targetWidget, "_renderData", () => { // TODO: check if _renderData exists (hasOwnProperty)
             Hammer.each(this.targetNode.querySelectorAll(".mx-listview-item"), (container: HTMLElement) => {
                 new HammerSwipeOut(container, swipeOutOptions);
             }, this);
@@ -59,26 +60,22 @@ class ListViewSwipeOut extends WidgetBase {
                 domClass.add(this.targetNode, this.swipeClass);
             } else {
                 this.targetWidget = null;
-                logger.error("Supplied target does not correspond to a listview: " + this.targetName);
+                logger.error(`Supplied target does not correspond to a listview: ${this.targetName}`);
             }
         } else {
-            logger.error("Unable to find listview with name " + this.targetName);
+            logger.error(`Unable to find listview with name ${this.targetName}`); // TODO: use mx.ui error thingy
         }
     }
 
     private handleSwipe(direction: Direction) {
         const guids = this.contextObject ? [ this.contextObject.getGuid() ] : [];
-        if (direction === "left") {
-            this.executeAction(this.onLeftSwipe, guids);
-        } else {
-            this.executeAction(this.onRightSwipe, guids);
-        }
+        this.executeAction(direction === "left" ? this.onLeftSwipe : this.onRightSwipe, guids);
     }
 
     private executeAction(microflow: string, guids: string[]) {
         if (microflow) {
             window.mx.ui.action(microflow, {
-                error: (error: Error) =>
+                error: error =>
                     window.mx.ui.error(`An error occurred while executing action: ${error.message}`, true),
                 params: { guids }
             });
@@ -89,7 +86,7 @@ class ListViewSwipeOut extends WidgetBase {
 // Declare widget prototype the Dojo way
 // Thanks to https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/dojo/README.md
 // tslint:disable : only-arrow-functions
-dojoDeclare("com.mendix.widget.ListViewSwipeOut.ListViewSwipeOut", [ WidgetBase ], function (Source: any) {
+dojoDeclare("com.mendix.widget.ListViewSwipeOut.ListViewSwipeOut", [ WidgetBase ], function(Source: any) {
     let result: any = {};
     for (let property in Source.prototype) {
         if (property !== "constructor" && Source.prototype.hasOwnProperty(property)) {
@@ -97,4 +94,4 @@ dojoDeclare("com.mendix.widget.ListViewSwipeOut.ListViewSwipeOut", [ WidgetBase 
         }
     }
     return result;
-} (ListViewSwipeOut));
+}(ListViewSwipeOut));
