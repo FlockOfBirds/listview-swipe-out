@@ -18,7 +18,9 @@ class HammerSwipeOut {
     private containerClass: string;
     private hammer: HammerManager;
     private options: SwipeOutOptions;
-    private swipedOut: boolean;
+    private swipedOut: boolean = false;
+    private isScrolling: boolean = false;
+    private thresholdCompensation: number = 0;
 
     //TODO: Add test for phonegap and normal mobile browser
 
@@ -27,11 +29,10 @@ class HammerSwipeOut {
         this.options = options;
         this.containerClass = this.container.className;
         this.containerSize = this.container.offsetWidth;
-        this.swipedOut = false;
 
         this.hammer = new Hammer.Manager(this.container);
         this.hammer.add(new Hammer.Pan({ direction: Hammer.DIRECTION_HORIZONTAL }));
-        this.hammer.on("panstart panmove panend pancancel", (event: HammerInput) => this.onPan(event));
+        this.hammer.on("panstart panmove panend pancancel", event => this.onPan(event));
 
         this.swipePane = this.container.getElementsByClassName("swipe-foreground")[0] as HTMLElement;
         if (!this.swipePane) {
@@ -42,14 +43,26 @@ class HammerSwipeOut {
     }
 
     private onPan(ev: HammerInput) {
+        if (ev.type === "panstart") {
+            this.isScrolling = false;
+            this.thresholdCompensation = ev.deltaX;
+        }
         const maximumPercentage = 100;
         const percentageThreshold = 20;
-        let currentPercentage = (maximumPercentage / this.containerSize) * ev.deltaX;
+        let currentPercentage = (maximumPercentage / this.containerSize) * (ev.deltaX - this.thresholdCompensation);
         let animate = false;
-        let direction: Direction;
+        if (this.isScrolling && ev.type === "panmove") {
+            return;
+        }
+        const isScrolling = Math.abs(ev.deltaY) > 20;
+        if (isScrolling) {
+            this.isScrolling = true;
+            this.show(0, true);
+            return;
+        }
         if (ev.type === "panend" || ev.type === "pancancel") {
             if (Math.abs(currentPercentage) > percentageThreshold && ev.type === "panend") {
-                direction = currentPercentage < 0 ? "left" : "right";
+                const direction: Direction = currentPercentage < 0 ? "left" : "right";
                 this.out(direction);
                 return;
             }
@@ -59,7 +72,7 @@ class HammerSwipeOut {
         this.show(currentPercentage, animate);
     }
 
-    private show(currentPercentage: number = 0, animate?: boolean) {
+    private show(currentPercentage = 0, animate?: boolean) {
         const hundredPercent = 100;
         const pos = (this.containerSize / hundredPercent) * currentPercentage;
         const translate = "translate3d(" + pos + "px, 0, 0)";
@@ -68,9 +81,22 @@ class HammerSwipeOut {
             domClass.add(this.container, "animate");
         } else {
             domClass.remove(this.container, "animate");
+            domClass.add(this.container, pos < 0 ? "swiping-left" : "swiping-right");
         }
 
-        domStyle.set(this.swipePane, { transform: translate });
+        if (pos < 0) {
+            // TODO Only update when changed..
+            domClass.add(this.container, "swiping-left");
+            domClass.remove(this.container, "swiping-right");
+        } else {
+            domClass.add(this.container, "swiping-right");
+            domClass.remove(this.container, "swiping-left");
+        }
+
+        domStyle.set(this.swipePane, {
+            opacity: 1 - Math.abs(currentPercentage / hundredPercent),
+            transform: translate
+        });
     }
 
     private out(direction: Direction) {
@@ -85,7 +111,6 @@ class HammerSwipeOut {
     private hide(direction: Direction) {
         const removeItemDelay = 600; // Should be done with next touch?
         if (this.options.afterSwipeAction === "remove") {
-
             setTimeout(() => {
                 domStyle.set(this.container, { "height": 0 });
                 domClass.add(this.container, "animate");
@@ -94,7 +119,7 @@ class HammerSwipeOut {
                     domClass.add(this.container, "hide");
                     domClass.remove(this.container, "animate");
                     this.options.callback(direction);
-                }, removeItemDelay)
+                }, removeItemDelay);
             }, this.options.callbackDelay);
         } else {
             setTimeout(() => {

@@ -30,19 +30,20 @@ class ListViewSwipeOut extends WidgetBase {
     }
 
     update(contextObject: mendix.lib.MxObject, callback: Function) {
-        this.contextObject = contextObject;
-        const swipeOutOptions: SwipeOutOptions = {
-            afterSwipeAction: this.afterSwipeAction,
-            callback: (direction: Direction) => this.handleSwipe(direction),
-            callbackDelay: this.microflowTriggerDelay * 1000
-        };
+        if (this.targetWidget) {
+            this.contextObject = contextObject;
+            const swipeOutOptions: SwipeOutOptions = {
+                afterSwipeAction: this.afterSwipeAction,
+                callback: (direction: Direction) => this.handleSwipe(direction),
+                callbackDelay: this.microflowTriggerDelay * 1000
+            };
 
-        dojoAspect.after(this.targetWidget, "_renderData", () => { // TODO: check if _renderData exists (hasOwnProperty)
-            Hammer.each(this.targetNode.querySelectorAll(".mx-listview-item"), (container: HTMLElement) => {
-                new HammerSwipeOut(container, swipeOutOptions);
-            }, this);
-        });
-
+            dojoAspect.after(this.targetWidget, "_renderData", () =>
+                Hammer.each(this.targetNode.querySelectorAll(".mx-listview-item"), (container: HTMLElement) => {
+                    new HammerSwipeOut(container, swipeOutOptions);
+                }, this)
+            );
+        }
         callback();
     }
 
@@ -57,7 +58,13 @@ class ListViewSwipeOut extends WidgetBase {
         if (this.targetNode) {
             this.targetWidget = registry.byNode(this.targetNode);
             if (this.targetWidget.declaredClass === "mxui.widget.ListView") {
+                // if (typeof this.targetWidget._renderData !== "undefined") {
                 domClass.add(this.targetNode, this.swipeClass);
+                // } else {
+                //     this.targetWidget = null;
+                //     logger.error("This Mendix version is not compatible with the Listview swipe out widget");
+                //     logger.error("mxui.widget.ListView does not have _renderData function");
+                // }
             } else {
                 this.targetWidget = null;
                 logger.error(`Supplied target does not correspond to a listview: ${this.targetName}`);
