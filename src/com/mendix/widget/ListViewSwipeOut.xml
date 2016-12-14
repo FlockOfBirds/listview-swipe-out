@@ -5,9 +5,9 @@
     <icon/>
     <properties>
         <property key="targetName" type="string" required="true">
-            <caption>Target List Name</caption>
+            <caption>Target listview</caption>
             <category>Appearance</category>
-            <description/>
+            <description>Name of the listview</description>
         </property>
         <property key="foreComponentName" type="string" required="false">
             <caption>Fore component</caption>

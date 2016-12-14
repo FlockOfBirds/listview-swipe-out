@@ -30,6 +30,7 @@ class ListViewSwipeOut extends WidgetBase {
     postCreate() {
         this.swipeClass = "swipe-listview-out";
         this.findTargets();
+        this.checkConfig();
     }
 
     update(contextObject: mendix.lib.MxObject, callback: Function) {
@@ -74,10 +75,16 @@ class ListViewSwipeOut extends WidgetBase {
                 // }
             } else {
                 this.targetWidget = null;
-                mx.ui.error(`Supplied target does not correspond to a listview: ${this.targetName}`);
+                window.mx.ui.error(`Supplied target name "${this.targetName}" is not of the type listview`);
             }
         } else {
-            mx.ui.error(`Unable to find listview with name ${this.targetName}`);
+            window.mx.ui.error(`Unable to find listview with the name "${this.targetName}"`);
+        }
+    }
+
+    private checkConfig() {
+        if (!this.onRightSwipe && !this.onLeftSwipe) {
+            window.mx.ui.error(this.id + " No microflow is setup, should setup a left or right", true);
         }
     }
 
@@ -90,7 +97,7 @@ class ListViewSwipeOut extends WidgetBase {
         if (microflow) {
             window.mx.ui.action(microflow, {
                 error: error =>
-                    window.mx.ui.error(`An error occurred while executing action: ${error.message}`, true),
+                    window.mx.ui.error(`An error occurred while executing action ${microflow}: ${error.message}`, true),
                 params: { guids }
             });
         }

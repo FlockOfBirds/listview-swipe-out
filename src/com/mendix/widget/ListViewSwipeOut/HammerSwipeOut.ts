@@ -72,13 +72,13 @@ class HammerSwipeOut {
             this.isScrolling = false;
             this.thresholdCompensation = ev.deltaX;
         }
+        if (this.isScrolling) {
+            return;
+        }
         const maximumPercentage = 100;
         const percentageThreshold = 20;
         let currentPercentage = (maximumPercentage / this.containerSize) * (ev.deltaX - this.thresholdCompensation);
         let animate = false;
-        if (this.isScrolling && ev.type === "panmove") {
-            return;
-        }
         const isScrolling = Math.abs(ev.deltaY) > 20;
         if (isScrolling) {
             this.isScrolling = true;
@@ -136,7 +136,7 @@ class HammerSwipeOut {
         if (this.options.afterSwipeAction === "remove") {
             setTimeout(() => {
                 domClass.add(this.container, "animate");
-                domStyle.set(this.container, { "height": 0 });
+                domStyle.set(this.container, { height: 0 });
 
                 setTimeout(() => {
                     domClass.add(this.container, "hide");
@@ -157,7 +157,7 @@ class HammerSwipeOut {
             this.foreComponent.addEventListener("transitionend", () => {
                 if (this.swipedOut) {
                     domStyle.set(this.container, {
-                        "height": this.container.offsetHeight + "px"
+                        height: this.container.offsetHeight + "px"
                     });
                     if (this.backComponent) { domClass.add(this.backComponent, "hide"); }
                 }
