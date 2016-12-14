@@ -29,6 +29,16 @@
             <category>Appearance</category>
             <description>Make item gradually transparent while swiping</description>
         </property>
+        <property key="swipeDirection" type="enumeration" required="true" defaultValue="horizontal">
+            <caption>Swipe direction</caption>
+            <category>Behavior</category>
+            <description>Direction to swipe</description>
+            <enumerationValues>
+                <enumerationValue key="left">Left</enumerationValue>
+                <enumerationValue key="right">Right</enumerationValue>
+                <enumerationValue key="horizontal">Horizontal</enumerationValue>
+            </enumerationValues>
+        </property>
         <property key="onLeftSwipe" type="microflow" required="false">
             <caption>On left swipe</caption>
             <category>Behavior</category>

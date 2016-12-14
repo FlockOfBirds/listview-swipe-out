@@ -21,6 +21,7 @@ class ListViewSwipeOut extends WidgetBase {
     backComponentName: string;
     postSwipeComponentName: string;
     transparentOnSwipe: boolean;
+    swipeDirection: Direction | "horizontal";
 
     private swipeClass: string;
     private targetWidget: mxui.widget._WidgetBase;
@@ -43,7 +44,8 @@ class ListViewSwipeOut extends WidgetBase {
                 callbackDelay: this.microflowTriggerDelay,
                 foreComponentName: this.foreComponentName,
                 postSwipeComponentName: this.postSwipeComponentName,
-                transparentOnSwipe: this.transparentOnSwipe
+                swipeDirection: this.swipeDirection,
+                transparentOnSwipe: this.transparentOnSwipe,
             };
 
             dojoAspect.after(this.targetWidget, "_renderData", () =>

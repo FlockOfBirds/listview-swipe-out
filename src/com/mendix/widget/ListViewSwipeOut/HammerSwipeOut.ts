@@ -9,6 +9,7 @@ interface SwipeOutOptions {
     foreComponentName: string;
     backComponentName: string;
     postSwipeComponentName?: string;
+    swipeDirection: Direction | "horizontal";
     transparentOnSwipe?: boolean;
 }
 
@@ -34,7 +35,9 @@ class HammerSwipeOut {
         this.containerSize = this.container.offsetWidth;
 
         this.hammer = new Hammer.Manager(this.container);
-        this.hammer.add(new Hammer.Pan({ direction: Hammer.DIRECTION_HORIZONTAL }));
+        this.hammer.add(new Hammer.Pan({
+            direction: (Hammer as any)[`DIRECTION_${options.swipeDirection.toUpperCase()}`]
+        }));
         this.hammer.on("panstart panmove panend pancancel", event => this.onPan(event));
 
         this.setUpPanes(options);
