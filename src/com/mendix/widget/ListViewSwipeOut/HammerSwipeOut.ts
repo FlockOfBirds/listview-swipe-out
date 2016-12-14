@@ -27,16 +27,18 @@ class HammerSwipeOut {
     private isScrolling: boolean = false;
     private thresholdCompensation: number = 0;
     private backComponent: HTMLElement;
+    private direction: number;
 
     constructor(container: HTMLElement, options: SwipeOutOptions) {
         this.container = container;
         this.options = options;
         this.containerClass = this.container.className;
         this.containerSize = this.container.offsetWidth;
+        this.direction = (Hammer as any)[`DIRECTION_${options.swipeDirection.toUpperCase()}`];
 
         this.hammer = new Hammer.Manager(this.container);
         this.hammer.add(new Hammer.Pan({
-            direction: (Hammer as any)[`DIRECTION_${options.swipeDirection.toUpperCase()}`]
+            direction: this.direction
         }));
         this.hammer.on("panstart panmove panend pancancel", event => this.onPan(event));
 
@@ -49,15 +51,26 @@ class HammerSwipeOut {
             ? this.container.querySelector(`.mx-name-${options.foreComponentName}`) as HTMLElement
             : null;
 
+        if (options.foreComponentName && !this.foreComponent) {
+            throw new Error(`No component with the name ${options.foreComponentName} found`);
+        }
+
         if (this.foreComponent) {
             domClass.add(this.foreComponent, "swipe-foreground");
 
             this.backComponent = options.backComponentName
                 ? this.container.querySelector(`.mx-name-${options.backComponentName}`) as HTMLElement
                 : null;
+            if (options.backComponentName && !this.backComponent) {
+                throw new Error(`No component with the name ${options.backComponentName} found`);
+            }
+
             const postSwipeComponent = options.postSwipeComponentName
                 ? this.container.querySelector(`.mx-name-${options.postSwipeComponentName}`) as HTMLElement
                 : null;
+            if (options.postSwipeComponentName && !postSwipeComponent) {
+                throw new Error(`No component with the name ${options.postSwipeComponentName} found`);
+            }
 
             if (this.backComponent) {
                 domClass.add(this.backComponent, "swipe-background");
@@ -81,6 +94,12 @@ class HammerSwipeOut {
         const maximumPercentage = 100;
         const percentageThreshold = 20;
         let currentPercentage = (maximumPercentage / this.containerSize) * (ev.deltaX - this.thresholdCompensation);
+        if (this.direction === Hammer.DIRECTION_RIGHT && currentPercentage < 0) {
+            currentPercentage = 0;
+        }
+        if (this.direction === Hammer.DIRECTION_LEFT && currentPercentage > 0) {
+            currentPercentage = 0;
+        }
         let animate = false;
         const isScrolling = Math.abs(ev.deltaY) > 20;
         if (isScrolling) {
@@ -104,6 +123,7 @@ class HammerSwipeOut {
         const hundredPercent = 100;
         const pos = (this.containerSize / hundredPercent) * currentPercentage;
         const translate = "translate3d(" + pos + "px, 0, 0)";
+
 
         if (animate) {
             domClass.add(this.container, "animate");

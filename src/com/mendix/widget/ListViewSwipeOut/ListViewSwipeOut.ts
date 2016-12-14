@@ -21,7 +21,6 @@ class ListViewSwipeOut extends WidgetBase {
     backComponentName: string;
     postSwipeComponentName: string;
     transparentOnSwipe: boolean;
-    swipeDirection: Direction | "horizontal";
 
     private swipeClass: string;
     private targetWidget: mxui.widget._WidgetBase;
@@ -37,22 +36,38 @@ class ListViewSwipeOut extends WidgetBase {
     update(contextObject: mendix.lib.MxObject, callback: Function) {
         if (this.targetWidget) {
             this.contextObject = contextObject;
-            const swipeOutOptions: SwipeOutOptions = {
-                afterSwipeAction: this.afterSwipeAction,
-                backComponentName: this.backComponentName,
-                callback: (direction: Direction) => this.handleSwipe(direction),
-                callbackDelay: this.microflowTriggerDelay,
-                foreComponentName: this.foreComponentName,
-                postSwipeComponentName: this.postSwipeComponentName,
-                swipeDirection: this.swipeDirection,
-                transparentOnSwipe: this.transparentOnSwipe,
-            };
+            let direction: Direction | "horizontal";
+            if (this.onLeftSwipe && this.onRightSwipe) {
+                direction = "horizontal";
+            } else if (!this.onLeftSwipe && this.onRightSwipe) {
+                direction = "right";
+            } else if (this.onLeftSwipe && !this.onRightSwipe) {
+                direction = "left"
+            }
 
-            dojoAspect.after(this.targetWidget, "_renderData", () =>
-                Hammer.each(this.targetNode.querySelectorAll(".mx-listview-item"), (container: HTMLElement) => {
-                    new HammerSwipeOut(container, swipeOutOptions);
-                }, this)
-            );
+            if (direction) {
+                const swipeOutOptions: SwipeOutOptions = {
+                    afterSwipeAction: this.afterSwipeAction,
+                    backComponentName: this.backComponentName,
+                    callback: (direction: Direction) => this.handleSwipe(direction),
+                    callbackDelay: this.microflowTriggerDelay,
+                    foreComponentName: this.foreComponentName,
+                    postSwipeComponentName: this.postSwipeComponentName,
+                    swipeDirection: direction,
+                    transparentOnSwipe: this.transparentOnSwipe,
+                };
+
+                dojoAspect.after(this.targetWidget, "_renderData", () => {
+                    try {
+                        Hammer.each(this.targetNode.querySelectorAll(".mx-listview-item"), (container: HTMLElement) => {
+                            new HammerSwipeOut(container, swipeOutOptions);
+                        }, this)
+                    } catch (error) {
+                        window.mx.ui.error(error.message, true);
+                    }
+
+                });
+            }
         }
         callback();
     }
@@ -68,13 +83,13 @@ class ListViewSwipeOut extends WidgetBase {
         if (this.targetNode) {
             this.targetWidget = registry.byNode(this.targetNode);
             if (this.targetWidget.declaredClass === "mxui.widget.ListView") {
-                // if (typeof this.targetWidget._renderData !== "undefined") {
-                domClass.add(this.targetNode, this.swipeClass);
-                // } else {
-                //     this.targetWidget = null;
-                //     logger.error("This Mendix version is not compatible with the Listview swipe out widget");
-                //     logger.error("mxui.widget.ListView does not have _renderData function");
-                // }
+                if (typeof (this.targetWidget as any)._renderData !== "undefined") {
+                    domClass.add(this.targetNode, this.swipeClass);
+                } else {
+                    this.targetWidget = null;
+                    window.mx.ui.error("This Mendix version is not compatible with the Listview swipe out widget", true);
+                    window.logger.error("mxui.widget.ListView does not have _renderData function");
+                }
             } else {
                 this.targetWidget = null;
                 window.mx.ui.error(`Supplied target name "${this.targetName}" is not of the type listview`);
