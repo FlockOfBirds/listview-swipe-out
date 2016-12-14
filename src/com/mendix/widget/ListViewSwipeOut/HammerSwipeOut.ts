@@ -6,6 +6,10 @@ interface SwipeOutOptions {
     afterSwipeAction: AfterSwipeAction;
     callback: (direction: Direction) => void;
     callbackDelay: number;
+    foreComponentName: string;
+    backComponentName: string;
+    postSwipeComponentName?: string;
+    transparentOnSwipe?: boolean;
 }
 
 type Direction = "right" | "left";
@@ -13,7 +17,7 @@ type AfterSwipeAction = "remove" | "none";
 
 class HammerSwipeOut {
     private container: HTMLElement;
-    private swipePane: HTMLElement;
+    private foreComponent: HTMLElement;
     private containerSize: number;
     private containerClass: string;
     private hammer: HammerManager;
@@ -21,8 +25,7 @@ class HammerSwipeOut {
     private swipedOut: boolean = false;
     private isScrolling: boolean = false;
     private thresholdCompensation: number = 0;
-
-    //TODO: Add test for phonegap and normal mobile browser
+    private backComponent: HTMLElement;
 
     constructor(container: HTMLElement, options: SwipeOutOptions) {
         this.container = container;
@@ -34,12 +37,34 @@ class HammerSwipeOut {
         this.hammer.add(new Hammer.Pan({ direction: Hammer.DIRECTION_HORIZONTAL }));
         this.hammer.on("panstart panmove panend pancancel", event => this.onPan(event));
 
-        this.swipePane = this.container.getElementsByClassName("swipe-foreground")[0] as HTMLElement;
-        if (!this.swipePane) {
-            this.swipePane = this.container;
-        }
-
+        this.setUpPanes(options);
         this.registerExtraEvents();
+    }
+
+    private setUpPanes(options: SwipeOutOptions) {
+        this.foreComponent = options.foreComponentName
+            ? this.container.querySelector(`.mx-name-${options.foreComponentName}`) as HTMLElement
+            : null;
+
+        if (this.foreComponent) {
+            domClass.add(this.foreComponent, "swipe-foreground");
+
+            this.backComponent = options.backComponentName
+                ? this.container.querySelector(`.mx-name-${options.backComponentName}`) as HTMLElement
+                : null;
+            const postSwipeComponent = options.postSwipeComponentName
+                ? this.container.querySelector(`.mx-name-${options.postSwipeComponentName}`) as HTMLElement
+                : null;
+
+            if (this.backComponent) {
+                domClass.add(this.backComponent, "swipe-background");
+            }
+            if (postSwipeComponent) {
+                domClass.add(postSwipeComponent, "swipe-background-out");
+            }
+        } else {
+            this.foreComponent = this.container;
+        }
     }
 
     private onPan(ev: HammerInput) {
@@ -84,17 +109,15 @@ class HammerSwipeOut {
             domClass.add(this.container, pos < 0 ? "swiping-left" : "swiping-right");
         }
 
-        if (pos < 0) {
-            // TODO Only update when changed..
-            domClass.add(this.container, "swiping-left");
-            domClass.remove(this.container, "swiping-right");
+        if (currentPercentage !== 0) {
+            domClass.add(this.container, `swiping-${pos < 0 ? "left" : "right"}`);
+            domClass.remove(this.container, `swiping-${pos < 0 ? "right" : "left"}`);
         } else {
-            domClass.add(this.container, "swiping-right");
-            domClass.remove(this.container, "swiping-left");
+            domClass.remove(this.container, [ "swiping-right", "swiping-left" ]);
         }
 
-        domStyle.set(this.swipePane, {
-            opacity: 1 - Math.abs(currentPercentage / hundredPercent),
+        domStyle.set(this.foreComponent, {
+            opacity: this.options.transparentOnSwipe ? 1 - Math.abs(currentPercentage / hundredPercent) : 1,
             transform: translate
         });
     }
@@ -103,17 +126,17 @@ class HammerSwipeOut {
         let pos = direction === "left" ? -this.containerSize : this.containerSize;
         const translate = "translate3d(" + pos + "px, 0, 0)";
         domClass.add(this.container, "animate");
-        domStyle.set(this.swipePane, { transform: translate });
+        domStyle.set(this.foreComponent, { transform: translate });
         this.swipedOut = true;
         this.hide(direction);
     }
 
     private hide(direction: Direction) {
-        const removeItemDelay = 600; // Should be done with next touch?
+        const removeItemDelay = 600;
         if (this.options.afterSwipeAction === "remove") {
             setTimeout(() => {
-                domStyle.set(this.container, { "height": 0 });
                 domClass.add(this.container, "animate");
+                domStyle.set(this.container, { "height": 0 });
 
                 setTimeout(() => {
                     domClass.add(this.container, "hide");
@@ -131,14 +154,12 @@ class HammerSwipeOut {
 
     private registerExtraEvents() {
         if (this.options.afterSwipeAction === "remove") {
-            this.swipePane.addEventListener("transitionend", () => {
-                const swipeBackground = this.container.getElementsByClassName("swipe-background")[0] as HTMLElement;
-                if (swipeBackground && this.swipedOut) {
+            this.foreComponent.addEventListener("transitionend", () => {
+                if (this.swipedOut) {
                     domStyle.set(this.container, {
                         "height": this.container.offsetHeight + "px"
                     });
-                    domClass.add(swipeBackground, "hide");
-
+                    if (this.backComponent) { domClass.add(this.backComponent, "hide"); }
                 }
             });
         }

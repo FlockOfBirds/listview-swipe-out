@@ -9,6 +9,26 @@
             <category>Appearance</category>
             <description/>
         </property>
+        <property key="foreComponentName" type="string" required="false">
+            <caption>Fore component</caption>
+            <category>Appearance</category>
+            <description>Name of the component to swipe</description>
+        </property>
+        <property key="backComponentName" type="string" required="false">
+            <caption>Back component</caption>
+            <category>Appearance</category>
+            <description>Name of the component shown beneath the fore component during swiping</description>
+        </property>
+        <property key="postSwipeComponentName" type="string" required="false">
+            <caption>Post-swipe component</caption>
+            <category>Appearance</category>
+            <description>Name of the component shown after swiping is done</description>
+        </property>
+        <property key="transparentOnSwipe" type="boolean" required="true" defaultValue="false">
+            <caption>Transparent during swipe</caption>
+            <category>Appearance</category>
+            <description>Make item gradually transparent while swiping</description>
+        </property>
         <property key="onLeftSwipe" type="microflow" required="false">
             <caption>On left swipe</caption>
             <category>Behavior</category>
@@ -21,10 +41,10 @@
             <description>Microflow to execute after swiping to the right</description>
             <returnType type="Void"/>
         </property>
-        <property key="microflowTriggerDelay" type="integer" required="true" defaultValue="2">
+        <property key="microflowTriggerDelay" type="integer" required="true" defaultValue="1500">
             <caption>Microflow trigger delay</caption>
             <category>Behavior</category>
-            <description>How many seconds after swiping should the corresponding microflow be triggered</description>
+            <description>How many microseconds after swiping should the corresponding microflow be triggered</description>
         </property>
         <property key="afterSwipeAction" type="enumeration" required="true" defaultValue="remove">
             <caption>After swipe action</caption>

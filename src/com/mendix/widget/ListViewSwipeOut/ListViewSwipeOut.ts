@@ -15,9 +15,12 @@ class ListViewSwipeOut extends WidgetBase {
     targetName: string;
     onLeftSwipe: string;
     onRightSwipe: string;
-    microflowTriggerDelay: number; // TODO: Set to milliseconds or ditch the setting
+    microflowTriggerDelay: number;
     afterSwipeAction: AfterSwipeAction;
-    // TODO: set config for swipe classes
+    foreComponentName: string;
+    backComponentName: string;
+    postSwipeComponentName: string;
+    transparentOnSwipe: boolean;
 
     private swipeClass: string;
     private targetWidget: mxui.widget._WidgetBase;
@@ -26,7 +29,7 @@ class ListViewSwipeOut extends WidgetBase {
 
     postCreate() {
         this.swipeClass = "swipe-listview-out";
-        this.findTarget();
+        this.findTargets();
     }
 
     update(contextObject: mendix.lib.MxObject, callback: Function) {
@@ -34,8 +37,12 @@ class ListViewSwipeOut extends WidgetBase {
             this.contextObject = contextObject;
             const swipeOutOptions: SwipeOutOptions = {
                 afterSwipeAction: this.afterSwipeAction,
+                backComponentName: this.backComponentName,
                 callback: (direction: Direction) => this.handleSwipe(direction),
-                callbackDelay: this.microflowTriggerDelay * 1000
+                callbackDelay: this.microflowTriggerDelay,
+                foreComponentName: this.foreComponentName,
+                postSwipeComponentName: this.postSwipeComponentName,
+                transparentOnSwipe: this.transparentOnSwipe
             };
 
             dojoAspect.after(this.targetWidget, "_renderData", () =>
@@ -47,7 +54,7 @@ class ListViewSwipeOut extends WidgetBase {
         callback();
     }
 
-    private findTarget() {
+    private findTargets() {
         let queryNode = this.domNode.parentNode as Element;
         while (!this.targetNode) {
             this.targetNode = queryNode.querySelector(".mx-name-" + this.targetName) as HTMLElement;
@@ -67,10 +74,10 @@ class ListViewSwipeOut extends WidgetBase {
                 // }
             } else {
                 this.targetWidget = null;
-                logger.error(`Supplied target does not correspond to a listview: ${this.targetName}`);
+                mx.ui.error(`Supplied target does not correspond to a listview: ${this.targetName}`);
             }
         } else {
-            logger.error(`Unable to find listview with name ${this.targetName}`); // TODO: use mx.ui error thingy
+            mx.ui.error(`Unable to find listview with name ${this.targetName}`);
         }
     }
 
