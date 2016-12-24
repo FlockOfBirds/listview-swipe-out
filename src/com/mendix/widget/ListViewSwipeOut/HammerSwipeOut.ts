@@ -25,9 +25,13 @@ class HammerSwipeOut {
     private options: SwipeOutOptions;
     private swipedOut: boolean = false;
     private isScrolling: boolean = false;
-    private thresholdCompensation: number = 0;
     private backComponent: HTMLElement;
     private direction: number;
+    private thresholdCompensation: number = 0;
+    // Internal settings
+    private thresholdScrolling: number = 30; // Pixels.
+    private swipeAcceptThreshold: number = 20; // Percentage.
+    private removeItemDelay: number = 600; // Milliseconds
 
     constructor(container: HTMLElement, options: SwipeOutOptions) {
         this.container = container;
@@ -92,7 +96,6 @@ class HammerSwipeOut {
             return;
         }
         const maximumPercentage = 100;
-        const percentageThreshold = 20;
         let currentPercentage = (maximumPercentage / this.containerSize) * (ev.deltaX - this.thresholdCompensation);
         if (this.direction === Hammer.DIRECTION_RIGHT && currentPercentage < 0) {
             currentPercentage = 0;
@@ -101,14 +104,14 @@ class HammerSwipeOut {
             currentPercentage = 0;
         }
         let animate = false;
-        const isScrolling = Math.abs(ev.deltaY) > 20;
+        const isScrolling = Math.abs(ev.deltaY) > this.thresholdScrolling;
         if (isScrolling) {
             this.isScrolling = true;
             this.show(0, true);
             return;
         }
         if (ev.type === "panend" || ev.type === "pancancel") {
-            if (Math.abs(currentPercentage) > percentageThreshold && ev.type === "panend") {
+            if (Math.abs(currentPercentage) > this.swipeAcceptThreshold && ev.type === "panend") {
                 const direction: Direction = currentPercentage < 0 ? "left" : "right";
                 this.out(direction);
                 return;
@@ -155,7 +158,6 @@ class HammerSwipeOut {
     }
 
     private hide(direction: Direction) {
-        const removeItemDelay = 600;
         if (this.options.afterSwipeAction === "remove") {
             setTimeout(() => {
                 domClass.add(this.container, "animate");
@@ -165,7 +167,7 @@ class HammerSwipeOut {
                     domClass.add(this.container, "hide");
                     domClass.remove(this.container, "animate");
                     this.options.callback(direction);
-                }, removeItemDelay);
+                }, this.removeItemDelay);
             }, this.options.callbackDelay);
         } else {
             setTimeout(() => {
