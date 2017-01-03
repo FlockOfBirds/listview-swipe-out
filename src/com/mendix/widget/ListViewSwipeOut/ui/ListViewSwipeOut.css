@@ -5,8 +5,8 @@
 
 .swipe-listview-out .mx-listview-item.animate,
 .swipe-listview-out .mx-listview-item.animate .swipe-foreground {
-    transition: all .6s;
-    -webkit-transition: all .6s;
+    transition: all .4s;
+    -webkit-transition: all .4s;
 }
 
 .swipe-listview-out .swipe-foreground {

@@ -98,8 +98,7 @@ class ListViewSwipeOut extends WidgetBase {
             is not of the type listview`);
             return false;
         }
-        if (this.targetWidget._renderData === undefined ||
-            this.targetWidget.datasource === undefined ||
+        if (this.targetWidget._renderData === undefined || this.targetWidget.datasource === undefined ||
             this.targetWidget.datasource.path === undefined) {
 
             window.mx.ui.error("Listview swipe out: this Mendix version is not compatible", true);

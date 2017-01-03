@@ -46,7 +46,7 @@
             <description>Microflow to execute after swiping to the right</description>
             <returnType type="Void"/>
         </property>
-        <property key="microflowTriggerDelay" type="integer" required="true" defaultValue="1500">
+        <property key="microflowTriggerDelay" type="integer" required="true" defaultValue="800">
             <caption>Microflow trigger delay</caption>
             <category>Behavior</category>
             <description>How many microseconds after swiping should the corresponding microflow be triggered</description>

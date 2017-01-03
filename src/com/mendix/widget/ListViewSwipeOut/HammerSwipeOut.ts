@@ -31,8 +31,8 @@ class HammerSwipeOut {
     // Internal settings
     readonly thresholdScrolling = 30; // Pixels.
     readonly swipeAcceptThreshold = 20; // Percentage.
-    readonly removeItemDelay = 600; // Milliseconds
-    readonly moveThreshold = 20; // Pixels
+    readonly removeItemDelay = 400; // Milliseconds
+    readonly moveThreshold = 30; // Pixels
 
     constructor(container: HTMLElement, options: SwipeOutOptions) {
         this.container = container;
