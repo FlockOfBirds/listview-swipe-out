@@ -13,6 +13,7 @@ import "./ui/ListViewSwipeOut.css";
 class ListViewSwipeOut extends WidgetBase {
     // Properties from Mendix modeler
     targetName: string;
+    itemEntity: string;
     onLeftSwipe: string;
     onRightSwipe: string;
     microflowTriggerDelay: number;
@@ -23,14 +24,17 @@ class ListViewSwipeOut extends WidgetBase {
     transparentOnSwipe: boolean;
 
     private swipeClass: string;
-    private targetWidget: mxui.widget._WidgetBase;
+    private targetWidget: any;
     private targetNode: HTMLElement;
     private contextObject: mendix.lib.MxObject;
 
     postCreate() {
         this.swipeClass = "swipe-listview-out";
-        this.findTargets();
-        this.checkConfig();
+        this.targetNode = this.findTargetNode(this.targetName);
+        if (this.validateConfig()) {
+            this.targetWidget = registry.byNode(this.targetNode);
+            domClass.add(this.targetNode, this.swipeClass);
+        }
     }
 
     update(contextObject: mendix.lib.MxObject, callback: Function) {
@@ -42,26 +46,26 @@ class ListViewSwipeOut extends WidgetBase {
             } else if (!this.onLeftSwipe && this.onRightSwipe) {
                 direction = "right";
             } else if (this.onLeftSwipe && !this.onRightSwipe) {
-                direction = "left"
+                direction = "left";
             }
 
             if (direction) {
                 const swipeOutOptions: SwipeOutOptions = {
                     afterSwipeAction: this.afterSwipeAction,
                     backComponentName: this.backComponentName,
-                    callback: (direction: Direction) => this.handleSwipe(direction),
+                    callback: (element, direction) => this.handleSwipe(element, direction),
                     callbackDelay: this.microflowTriggerDelay,
                     foreComponentName: this.foreComponentName,
                     postSwipeComponentName: this.postSwipeComponentName,
                     swipeDirection: direction,
-                    transparentOnSwipe: this.transparentOnSwipe,
+                    transparentOnSwipe: this.transparentOnSwipe
                 };
 
                 dojoAspect.after(this.targetWidget, "_renderData", () => {
                     try {
                         Hammer.each(this.targetNode.querySelectorAll(".mx-listview-item"), (container: HTMLElement) => {
                             new HammerSwipeOut(container, swipeOutOptions);
-                        }, this)
+                        }, this);
                     } catch (error) {
                         window.mx.ui.error(error.message, true);
                     }
@@ -72,41 +76,52 @@ class ListViewSwipeOut extends WidgetBase {
         callback();
     }
 
-    private findTargets() {
+    private findTargetNode(name: string) {
         let queryNode = this.domNode.parentNode as Element;
-        while (!this.targetNode) {
-            this.targetNode = queryNode.querySelector(".mx-name-" + this.targetName) as HTMLElement;
+        let targetNode: HTMLElement;
+        while (!targetNode) {
+            targetNode = queryNode.querySelector(".mx-name-" + name) as HTMLElement;
             if (window.document.isEqualNode(queryNode)) { break; }
             queryNode = queryNode.parentNode as HTMLElement;
         }
-
-        if (this.targetNode) {
-            this.targetWidget = registry.byNode(this.targetNode);
-            if (this.targetWidget.declaredClass === "mxui.widget.ListView") {
-                if (typeof (this.targetWidget as any)._renderData !== "undefined") {
-                    domClass.add(this.targetNode, this.swipeClass);
-                } else {
-                    this.targetWidget = null;
-                    window.mx.ui.error("This Mendix version is not compatible with the Listview swipe out widget", true);
-                    window.logger.error("mxui.widget.ListView does not have _renderData function");
-                }
-            } else {
-                this.targetWidget = null;
-                window.mx.ui.error(`Supplied target name "${this.targetName}" is not of the type listview`);
-            }
-        } else {
-            window.mx.ui.error(`Unable to find listview with the name "${this.targetName}"`);
-        }
+        return targetNode;
     }
 
-    private checkConfig() {
+    private validateConfig(): boolean {
+        if (!this.targetNode) {
+            window.mx.ui.error(`Listview swipe out: unable to find listview with the name "${this.targetName}"`);
+            return false;
+        }
+        this.targetWidget = registry.byNode(this.targetNode);
+        if (!this.targetWidget || this.targetWidget.declaredClass !== "mxui.widget.ListView") {
+            window.mx.ui.error(`Listview swipe out: configuration target name "${this.targetName}" 
+            is not of the type listview`);
+            return false;
+        }
+        if (this.targetWidget._renderData === undefined ||
+            this.targetWidget.datasource === undefined ||
+            this.targetWidget.datasource.path === undefined) {
+
+            window.mx.ui.error("Listview swipe out: this Mendix version is not compatible", true);
+            window.logger.error("mxui.widget.ListView does not have a _renderData function or or .datasource.path");
+            return false;
+        }
+        const segments = this.targetWidget.datasource.path.split("/");
+        const listEntity = segments.length ? segments[segments.length - 1] : "";
+        if (listEntity !== this.itemEntity) {
+            window.mx.ui.error(`Listview swipe out: configuration entity ${this.itemEntity} does not 
+            match the listview entity ${listEntity} of ${this.targetName}`, true);
+            return false;
+        }
         if (!this.onRightSwipe && !this.onLeftSwipe) {
-            window.mx.ui.error(this.id + " No microflow is setup, should setup a left or right", true);
+            window.mx.ui.error("Listview swipe out: no microflow is setup, a left and/or right is required", true);
+            return false;
         }
+        return true;
     }
 
-    private handleSwipe(direction: Direction) {
-        const guids = this.contextObject ? [ this.contextObject.getGuid() ] : [];
+    private handleSwipe(element: HTMLElement, direction: Direction) {
+        const guids = [ registry.byNode(element).getGuid() ];
         this.executeAction(direction === "left" ? this.onLeftSwipe : this.onRightSwipe, guids);
     }
 
@@ -115,7 +130,10 @@ class ListViewSwipeOut extends WidgetBase {
             window.mx.ui.action(microflow, {
                 error: error =>
                     window.mx.ui.error(`An error occurred while executing action ${microflow}: ${error.message}`, true),
-                params: { guids }
+                params: {
+                    applyto: "selection",
+                    guids
+                }
             });
         }
     }

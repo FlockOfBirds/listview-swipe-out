@@ -4,7 +4,7 @@ import * as domStyle from "dojo/dom-style";
 
 interface SwipeOutOptions {
     afterSwipeAction: AfterSwipeAction;
-    callback: (direction: Direction) => void;
+    callback: (element: HTMLElement, direction: Direction) => void;
     callbackDelay: number;
     foreComponentName: string;
     backComponentName: string;
@@ -27,11 +27,12 @@ class HammerSwipeOut {
     private isScrolling: boolean = false;
     private backComponent: HTMLElement;
     private direction: number;
-    private thresholdCompensation: number = 0;
+    private thresholdCompensation = 0;
     // Internal settings
-    private thresholdScrolling: number = 30; // Pixels.
-    private swipeAcceptThreshold: number = 20; // Percentage.
-    private removeItemDelay: number = 600; // Milliseconds
+    readonly thresholdScrolling = 30; // Pixels.
+    readonly swipeAcceptThreshold = 20; // Percentage.
+    readonly removeItemDelay = 600; // Milliseconds
+    readonly moveThreshold = 20; // Pixels
 
     constructor(container: HTMLElement, options: SwipeOutOptions) {
         this.container = container;
@@ -42,7 +43,8 @@ class HammerSwipeOut {
 
         this.hammer = new Hammer.Manager(this.container);
         this.hammer.add(new Hammer.Pan({
-            direction: this.direction
+            direction: this.direction,
+            threshold: this.moveThreshold
         }));
         this.hammer.on("panstart panmove panend pancancel", event => this.onPan(event));
 
@@ -166,13 +168,13 @@ class HammerSwipeOut {
                 setTimeout(() => {
                     domClass.add(this.container, "hide");
                     domClass.remove(this.container, "animate");
-                    this.options.callback(direction);
+                    this.options.callback(this.container, direction);
                 }, this.removeItemDelay);
             }, this.options.callbackDelay);
         } else {
             setTimeout(() => {
                 domClass.remove(this.container, "animate");
-                this.options.callback(direction);
+                this.options.callback(this.container, direction);
             }, this.options.callbackDelay);
         }
     }

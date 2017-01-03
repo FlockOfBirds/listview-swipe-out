@@ -29,13 +29,18 @@
             <category>Appearance</category>
             <description>Make item gradually transparent while swiping</description>
         </property>
-        <property key="onLeftSwipe" type="microflow" required="false">
+        <property key="itemEntity" type="entity" allowNonPersistableEntities="true" required="false">
+            <caption>Item entity</caption>
+            <category>Behavior</category>
+            <description>Microflow to execute after swiping to the right</description>
+        </property>
+        <property key="onLeftSwipe" type="microflow" required="false" entityProperty="itemEntity">
             <caption>On left swipe</caption>
             <category>Behavior</category>
             <description>Microflow to execute after swiping to the left</description>
             <returnType type="Void"/>
         </property>
-        <property key="onRightSwipe" type="microflow" required="false">
+        <property key="onRightSwipe" type="microflow" required="false" entityProperty="itemEntity">
             <caption>On right swipe</caption>
             <category>Behavior</category>
             <description>Microflow to execute after swiping to the right</description>
