@@ -9,7 +9,7 @@ module.exports = function (grunt) {
         watch: {
             updateWidgetFiles: {
                 "files": [ "./dist/tmp/src/**/*" ],
-                "tasks": [ "string-replace", "compress:dist", "copy:distDeployment", "copy:mpk" ],
+                "tasks": [ "compress:dist", "copy:distDeployment", "copy:mpk" ],
                 options: {
                     debounceDelay: 250,
                     livereload: true
@@ -62,22 +62,6 @@ module.exports = function (grunt) {
                 "./dist/MxTestProject/deployment/web/widgets/" + pkg.name + "/*",
                 "./dist/MxTestProject/widgets/" + pkg.name + ".mpk"
             ]
-        },
-        "string-replace": {
-            fixPhoneGap: {
-                files: {
-                    "./dist/tmp/src/": "./dist/tmp/src/**/*.js",
-                },
-                options: {
-                    replacements: [
-                        // Fix Mendix issue on phonegap > mx6.9
-                        {
-                            pattern: 'define("com.mendix.widget.ListViewSwipeOut.ListViewSwipeOut", ',
-                            replacement: "require("
-                        }
-                    ]
-                }
-            }
         }
     });
     
@@ -85,14 +69,13 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks("grunt-contrib-clean");
     grunt.loadNpmTasks("grunt-contrib-watch");
     grunt.loadNpmTasks("grunt-contrib-copy");
-    grunt.loadNpmTasks("grunt-string-replace");
     grunt.loadNpmTasks("grunt-webpack");
 
     grunt.registerTask("default", [ "clean build", "watch" ]);
     grunt.registerTask(
         "clean build",
         "Compiles all the assets and copies the files to the build directory.",
-        [ "clean:build", "webpack", "string-replace", "compress:dist", "copy:mpk" ]
+        [ "clean:build", "webpack", "compress:dist", "copy:mpk" ]
     );
     grunt.registerTask("build", [ "clean build" ]);
 };

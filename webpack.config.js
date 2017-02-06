@@ -9,8 +9,7 @@ module.exports = {
         path: path.resolve(__dirname, "dist/tmp"),
         filename: "src/com/mendix/widget/ListViewSwipeOut/ListViewSwipeOut.js",
         libraryTarget: "umd",
-        umdNamedDefine: true,
-        library: "com.mendix.widget.ListViewSwipeOut.ListViewSwipeOut"
+        umdNamedDefine: false
     },
     resolve: {
         extensions: [ "", ".ts", ".js", ".json" ]
