@@ -29,7 +29,7 @@ class HammerSwipeOut {
     private direction: number;
     private thresholdCompensation = 0;
     // Internal settings
-    readonly thresholdScrolling = 30; // Pixels.
+    readonly thresholdScrolling = 60; // Pixels.
     readonly swipeAcceptThreshold = 20; // Percentage.
     readonly removeItemDelay = 400; // Milliseconds
     readonly moveThreshold = 30; // Pixels
