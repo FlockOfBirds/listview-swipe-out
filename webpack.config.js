@@ -23,16 +23,7 @@ module.exports = {
         ]
     },
     devtool: "source-map",
-    externals: [
-        "mxui/widget/_WidgetBase",
-        "dojo/_base/declare",
-        "dojo/aspect",
-        "dojo/dom-class",
-        "dojo/dom-style",
-        "dojo/query",
-        "dijit/registry",
-        "dojo/dom-construct"
-    ],
+    externals: [ /^mxui\/|^mendix\/|^dojo\/|^dijit\// ],
     plugins: [
         new CopyWebpackPlugin([
             { from: "src/**/*.js" },
