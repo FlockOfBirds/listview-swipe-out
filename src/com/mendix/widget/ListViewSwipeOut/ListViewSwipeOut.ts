@@ -1,9 +1,9 @@
 import * as dojoDeclare from "dojo/_base/declare";
 import * as WidgetBase from "mxui/widget/_WidgetBase";
 
+import * as registry from "dijit/registry";
 import * as dojoAspect from "dojo/aspect";
 import * as domClass from "dojo/dom-class";
-import * as registry from "dijit/registry";
 
 import * as Hammer from "hammerjs";
 import { AfterSwipeAction, Direction, HammerSwipeOut, SwipeOutOptions } from "./HammerSwipeOut";
@@ -37,7 +37,7 @@ class ListViewSwipeOut extends WidgetBase {
         }
     }
 
-    update(contextObject: mendix.lib.MxObject, callback: Function) {
+    update(contextObject: mendix.lib.MxObject, callback?: () => void) {
         if (this.targetWidget) {
             this.contextObject = contextObject;
             let direction: Direction | "horizontal";
@@ -53,7 +53,7 @@ class ListViewSwipeOut extends WidgetBase {
                 const swipeOutOptions: SwipeOutOptions = {
                     afterSwipeAction: this.afterSwipeAction,
                     backComponentName: this.backComponentName,
-                    callback: (element, direction) => this.handleSwipe(element, direction),
+                    callback: (element, swipeDirection) => this.handleSwipe(element, swipeDirection),
                     callbackDelay: this.microflowTriggerDelay,
                     foreComponentName: this.foreComponentName,
                     postSwipeComponentName: this.postSwipeComponentName,
@@ -73,10 +73,11 @@ class ListViewSwipeOut extends WidgetBase {
                 });
             }
         }
-        callback();
+
+        if (callback) callback();
     }
 
-    private findTargetNode(name: string) {
+    private findTargetNode(name: string): HTMLElement {
         let queryNode = this.domNode.parentNode as Element;
         let targetNode: HTMLElement;
         while (!targetNode) {
@@ -142,8 +143,8 @@ class ListViewSwipeOut extends WidgetBase {
 // Thanks to https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/dojo/README.md
 // tslint:disable : only-arrow-functions
 dojoDeclare("com.mendix.widget.ListViewSwipeOut.ListViewSwipeOut", [ WidgetBase ], function(Source: any) {
-    let result: any = {};
-    for (let property in Source.prototype) {
+    const result: any = {};
+    for (const property in Source.prototype) {
         if (property !== "constructor" && Source.prototype.hasOwnProperty(property)) {
             result[property] = Source.prototype[property];
         }

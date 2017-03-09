@@ -14,7 +14,7 @@ interface SwipeOutOptions {
 }
 
 type Direction = "right" | "left";
-type AfterSwipeAction = "remove" | "none";
+type AfterSwipeAction = "reset" | "hide";
 
 class HammerSwipeOut {
     private container: HTMLElement;
@@ -23,8 +23,8 @@ class HammerSwipeOut {
     private containerClass: string;
     private hammer: HammerManager;
     private options: SwipeOutOptions;
-    private swipedOut: boolean = false;
-    private isScrolling: boolean = false;
+    private swipedOut = false;
+    private isScrolling = false;
     private backComponent: HTMLElement;
     private direction: number;
     private thresholdCompensation = 0;
@@ -127,8 +127,6 @@ class HammerSwipeOut {
     private show(currentPercentage = 0, animate?: boolean) {
         const hundredPercent = 100;
         const pos = (this.containerSize / hundredPercent) * currentPercentage;
-        const translate = "translate3d(" + pos + "px, 0, 0)";
-
 
         if (animate) {
             domClass.add(this.container, "animate");
@@ -146,21 +144,29 @@ class HammerSwipeOut {
 
         domStyle.set(this.foreComponent, {
             opacity: this.options.transparentOnSwipe ? 1 - Math.abs(currentPercentage / hundredPercent) : 1,
-            transform: translate
+            transform: "translate3d(" + pos + "px, 0, 0)"
         });
     }
 
     private out(direction: Direction) {
-        let pos = direction === "left" ? -this.containerSize : this.containerSize;
-        const translate = "translate3d(" + pos + "px, 0, 0)";
+        const pos = direction === "left" ? -this.containerSize : this.containerSize;
         domClass.add(this.container, "animate");
-        domStyle.set(this.foreComponent, { transform: translate });
+        domStyle.set(this.foreComponent, { transform: "translate3d(" + pos + "px, 0, 0)" });
         this.swipedOut = true;
         this.hide(direction);
     }
 
     private hide(direction: Direction) {
-        if (this.options.afterSwipeAction === "remove") {
+        if (this.options.afterSwipeAction === "reset") {
+            setTimeout(() => {
+                domClass.remove(this.container, "animate");
+                domStyle.set(this.foreComponent, {
+                    opacity: 1,
+                    transform: "translate3d(0, 0, 0)"
+                });
+                this.options.callback(this.container, direction);
+            }, this.options.callbackDelay);
+        } else if (this.options.afterSwipeAction === "hide") {
             setTimeout(() => {
                 domClass.add(this.container, "animate");
                 domStyle.set(this.container, { height: 0 });
@@ -180,7 +186,7 @@ class HammerSwipeOut {
     }
 
     private registerExtraEvents() {
-        if (this.options.afterSwipeAction === "remove") {
+        if (this.options.afterSwipeAction === "hide") {
             this.foreComponent.addEventListener("transitionend", () => {
                 if (this.swipedOut) {
                     domStyle.set(this.container, {

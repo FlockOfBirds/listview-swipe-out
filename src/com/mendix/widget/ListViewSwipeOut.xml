@@ -32,7 +32,7 @@
         <property key="itemEntity" type="entity" allowNonPersistableEntities="true" required="false">
             <caption>Item entity</caption>
             <category>Behavior</category>
-            <description>Microflow to execute after swiping to the right</description>
+            <description>Entity to be passed on to the microflow</description>
         </property>
         <property key="onLeftSwipe" type="microflow" required="false" entityProperty="itemEntity">
             <caption>On left swipe</caption>
@@ -51,13 +51,13 @@
             <category>Behavior</category>
             <description>How many microseconds after swiping should the corresponding microflow be triggered</description>
         </property>
-        <property key="afterSwipeAction" type="enumeration" required="true" defaultValue="remove">
+        <property key="afterSwipeAction" type="enumeration" required="true" defaultValue="hide">
             <caption>After swipe action</caption>
             <category>Behavior</category>
-            <description>Visual action to take once swiping is done</description>
+            <description>Visual action to take once swiping is done. Note Delete will cause a refresh</description>
             <enumerationValues>
-                <enumerationValue key="remove">Remove</enumerationValue>
-                <enumerationValue key="none">None</enumerationValue>
+                <enumerationValue key="hide">Hide</enumerationValue>
+                <enumerationValue key="reset">Reset</enumerationValue>
             </enumerationValues>
         </property>
     </properties>
