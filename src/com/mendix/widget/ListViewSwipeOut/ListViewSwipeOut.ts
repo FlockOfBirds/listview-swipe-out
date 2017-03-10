@@ -13,15 +13,22 @@ import "./ui/ListViewSwipeOut.css";
 class ListViewSwipeOut extends WidgetBase {
     // Properties from Mendix modeler
     targetName: string;
-    itemEntity: string;
-    onLeftSwipe: string;
-    onRightSwipe: string;
-    microflowTriggerDelay: number;
-    afterSwipeAction: AfterSwipeAction;
-    foreComponentName: string;
-    backComponentName: string;
-    postSwipeComponentName: string;
+    foregroundName: string;
     transparentOnSwipe: boolean;
+    itemEntity: string;
+    actionTriggerDelay: number;
+    onSwipeActionRight: "disabled" | "showPage" | "callMicroflow";
+    onSwipeActionLeft: "disabled" | "showPage" | "callMicroflow";
+    onSwipeMicroflowLeft: string;
+    onSwipeMicroflowRight: string;
+    onSwipePageLeft: string;
+    onSwipePageRight: string;
+    afterSwipeActionRight: AfterSwipeAction;
+    afterSwipeActionLeft: AfterSwipeAction;
+    backgroundNameRight: string;
+    backgroundNameLeft: string;
+    afterSwipeBackgroundNameRight: string;
+    afterSwipeBackgroundNameLeft: string;
 
     private swipeClass: string;
     private targetWidget: any;
@@ -41,22 +48,25 @@ class ListViewSwipeOut extends WidgetBase {
         if (this.targetWidget) {
             this.contextObject = contextObject;
             let direction: Direction | "horizontal";
-            if (this.onLeftSwipe && this.onRightSwipe) {
+            if (this.onSwipeActionRight !== "disabled" && this.onSwipeActionLeft !== "disabled") {
                 direction = "horizontal";
-            } else if (!this.onLeftSwipe && this.onRightSwipe) {
+            } else if (this.onSwipeActionRight !== "disabled") {
                 direction = "right";
-            } else if (this.onLeftSwipe && !this.onRightSwipe) {
+            } else if (this.onSwipeActionLeft !== "disabled") {
                 direction = "left";
             }
 
             if (direction) {
                 const swipeOutOptions: SwipeOutOptions = {
-                    afterSwipeAction: this.afterSwipeAction,
-                    backComponentName: this.backComponentName,
+                    afterSwipeActionLeft: this.afterSwipeActionLeft,
+                    afterSwipeActionRight: this.afterSwipeActionRight,
+                    afterSwipeBackgroundNameLeft: this.afterSwipeBackgroundNameLeft,
+                    afterSwipeBackgroundNameRight: this.afterSwipeBackgroundNameRight,
+                    backgroundNameLeft: this.backgroundNameLeft,
+                    backgroundNameRight: this.backgroundNameRight,
                     callback: (element, swipeDirection) => this.handleSwipe(element, swipeDirection),
-                    callbackDelay: this.microflowTriggerDelay,
-                    foreComponentName: this.foreComponentName,
-                    postSwipeComponentName: this.postSwipeComponentName,
+                    callbackDelay: this.actionTriggerDelay,
+                    foregroundName: this.foregroundName,
                     swipeDirection: direction,
                     transparentOnSwipe: this.transparentOnSwipe
                 };
@@ -113,29 +123,72 @@ class ListViewSwipeOut extends WidgetBase {
             match the listview entity ${listEntity} of ${this.targetName}`, true);
             return false;
         }
-        if (!this.onRightSwipe && !this.onLeftSwipe) {
-            window.mx.ui.error("Listview swipe out: no microflow is setup, a left and/or right is required", true);
+        if (this.onSwipeActionRight === "callMicroflow" && !this.onSwipeMicroflowRight) {
+            window.mx.ui.error("Listview swipe out: no right microflow is setup", true);
+            return false;
+        }
+        if (this.onSwipeActionLeft === "callMicroflow" && !this.onSwipeMicroflowLeft) {
+            window.mx.ui.error("Listview swipe out: no left microflow is setup", true);
+            return false;
+        }
+        if (this.onSwipeActionRight === "showPage" && !this.onSwipePageRight) {
+            window.mx.ui.error("Listview swipe out: no right page is setup", true);
+            return false;
+        }
+        if (this.onSwipeActionLeft === "showPage" && !this.onSwipePageLeft) {
+            window.mx.ui.error("Listview swipe out: no left page is setup", true);
+            return false;
+        }
+        if (this.onSwipeActionLeft === "disabled" && this.onSwipeActionRight === "disabled") {
+            window.mx.ui.error("Listview swipe out: no swipe action left or right selected", true);
             return false;
         }
         return true;
     }
 
     private handleSwipe(element: HTMLElement, direction: Direction) {
-        const guids = [ registry.byNode(element).getGuid() ];
-        this.executeAction(direction === "left" ? this.onLeftSwipe : this.onRightSwipe, guids);
+        const guid = registry.byNode(element).getGuid();
+        const context = this.createContext(guid);
+        this.callMicroflow(direction, context);
+        this.showPage(direction, context);
     }
 
-    private executeAction(microflow: string, guids: string[]) {
+    private callMicroflow(direction: Direction, context: mendix.lib.MxContext) {
+        const microflowRight = direction === "right" && this.onSwipeActionRight === "callMicroflow"
+            ? this.onSwipeMicroflowRight : "";
+        const microflowLeft = direction === "left" && this.onSwipeActionLeft === "callMicroflow"
+            ? this.onSwipeMicroflowLeft : "";
+        const microflow = microflowRight || microflowLeft;
+
         if (microflow) {
             window.mx.ui.action(microflow, {
+                context,
                 error: error =>
-                    window.mx.ui.error(`An error occurred while executing action ${microflow}: ${error.message}`, true),
-                params: {
-                    applyto: "selection",
-                    guids
-                }
+                    window.mx.ui.error(`An error occurred while executing action ${microflow}: ${error.message}`, true)
             });
         }
+    }
+
+    private showPage(direction: Direction, context: mendix.lib.MxContext) {
+        const pageRight = direction === "right" && this.onSwipeActionRight === "showPage"
+            ? this.onSwipePageRight : "";
+        const pageLeft = direction === "left" && this.onSwipeActionLeft === "showPage"
+            ? this.onSwipePageLeft : "";
+        const page = pageRight || pageLeft;
+
+        if (page) {
+            window.mx.ui.openForm(page, {
+                context,
+                error: error =>
+                    window.mx.ui.error(`An error occurred while opening form ${page} : ${error.message}`)
+            });
+        }
+    }
+
+    private createContext(guid: string): mendix.lib.MxContext {
+        const context = new mendix.lib.MxContext();
+        context.setContext(this.itemEntity, guid);
+        return context;
     }
 }
 

@@ -3,12 +3,15 @@ import * as domClass from "dojo/dom-class";
 import * as domStyle from "dojo/dom-style";
 
 interface SwipeOutOptions {
-    afterSwipeAction: AfterSwipeAction;
+    afterSwipeActionLeft: AfterSwipeAction;
+    afterSwipeActionRight: AfterSwipeAction;
+    afterSwipeBackgroundNameLeft?: string;
+    afterSwipeBackgroundNameRight?: string;
+    backgroundNameLeft: string;
+    backgroundNameRight: string;
     callback: (element: HTMLElement, direction: Direction) => void;
     callbackDelay: number;
-    foreComponentName: string;
-    backComponentName: string;
-    postSwipeComponentName?: string;
+    foregroundName: string;
     swipeDirection: Direction | "horizontal";
     transparentOnSwipe?: boolean;
 }
@@ -18,14 +21,18 @@ type AfterSwipeAction = "reset" | "hide";
 
 class HammerSwipeOut {
     private container: HTMLElement;
-    private foreComponent: HTMLElement;
+    private foreElement: HTMLElement;
     private containerSize: number;
     private containerClass: string;
     private hammer: HammerManager;
     private options: SwipeOutOptions;
     private swipedOut = false;
     private isScrolling = false;
-    private backComponent: HTMLElement;
+    private backElementRight: HTMLElement;
+    private backElementLeft: HTMLElement;
+    private afterElementRight: HTMLElement;
+    private afterElementLeft: HTMLElement;
+
     private direction: number;
     private thresholdCompensation = 0;
     // Internal settings
@@ -48,45 +55,32 @@ class HammerSwipeOut {
         }));
         this.hammer.on("panstart panmove panend pancancel", event => this.onPan(event));
 
-        this.setUpPanes(options);
+        this.setupPanes(options);
         this.registerExtraEvents();
     }
 
-    private setUpPanes(options: SwipeOutOptions) {
-        this.foreComponent = options.foreComponentName
-            ? this.container.querySelector(`.mx-name-${options.foreComponentName}`) as HTMLElement
-            : null;
+    private setupPanes(options: SwipeOutOptions) {
+        this.foreElement = this.findElement(options.foregroundName, "Foreground", "swipe-foreground");
 
-        if (options.foreComponentName && !this.foreComponent) {
-            throw new Error(`No component with the name ${options.foreComponentName} found`);
-        }
-
-        if (this.foreComponent) {
-            domClass.add(this.foreComponent, "swipe-foreground");
-
-            this.backComponent = options.backComponentName
-                ? this.container.querySelector(`.mx-name-${options.backComponentName}`) as HTMLElement
-                : null;
-            if (options.backComponentName && !this.backComponent) {
-                throw new Error(`No component with the name ${options.backComponentName} found`);
-            }
-
-            const postSwipeComponent = options.postSwipeComponentName
-                ? this.container.querySelector(`.mx-name-${options.postSwipeComponentName}`) as HTMLElement
-                : null;
-            if (options.postSwipeComponentName && !postSwipeComponent) {
-                throw new Error(`No component with the name ${options.postSwipeComponentName} found`);
-            }
-
-            if (this.backComponent) {
-                domClass.add(this.backComponent, "swipe-background");
-            }
-            if (postSwipeComponent) {
-                domClass.add(postSwipeComponent, "swipe-background-out");
-            }
+        if (this.foreElement) {
+            this.backElementRight = this.findElement(options.backgroundNameRight, "Background right", "swipe-background");
+            this.backElementLeft = this.findElement(options.backgroundNameLeft, "Background left", "swipe-background");
+            this.afterElementRight = this.findElement(options.afterSwipeBackgroundNameRight, "After swipe background right", "swipe-background-out");
+            this.afterElementLeft = this.findElement(options.afterSwipeBackgroundNameLeft, "After swipe background left", "swipe-background-out");
         } else {
-            this.foreComponent = this.container;
+            this.foreElement = this.container;
         }
+    }
+
+    private findElement(name: string, displayName: string, addClass?: string): HTMLElement | null {
+        const element = name ? this.container.querySelector(`.mx-name-${name}`) as HTMLElement : null;
+        if (name && !element) {
+            throw new Error(`No ${displayName} element found with the name ${name}`);
+        }
+        if (addClass) {
+            domClass.add(element, addClass);
+        }
+        return element;
     }
 
     private onPan(ev: HammerInput) {
@@ -128,6 +122,18 @@ class HammerSwipeOut {
         const hundredPercent = 100;
         const pos = (this.containerSize / hundredPercent) * currentPercentage;
 
+        if ( pos < 0 ) {
+            domClass.add(this.backElementRight, "hidden");
+            domClass.add(this.afterElementRight, "hidden");
+            domClass.remove(this.backElementLeft, "hidden");
+            domClass.remove(this.afterElementLeft, "hidden");
+        } else {
+            domClass.remove(this.backElementRight, "hidden");
+            domClass.remove(this.afterElementRight, "hidden");
+            domClass.add(this.backElementLeft, "hidden");
+            domClass.add(this.afterElementLeft, "hidden");
+        }
+
         if (animate) {
             domClass.add(this.container, "animate");
         } else {
@@ -142,7 +148,7 @@ class HammerSwipeOut {
             domClass.remove(this.container, [ "swiping-right", "swiping-left" ]);
         }
 
-        domStyle.set(this.foreComponent, {
+        domStyle.set(this.foreElement, {
             opacity: this.options.transparentOnSwipe ? 1 - Math.abs(currentPercentage / hundredPercent) : 1,
             transform: "translate3d(" + pos + "px, 0, 0)"
         });
@@ -151,22 +157,24 @@ class HammerSwipeOut {
     private out(direction: Direction) {
         const pos = direction === "left" ? -this.containerSize : this.containerSize;
         domClass.add(this.container, "animate");
-        domStyle.set(this.foreComponent, { transform: "translate3d(" + pos + "px, 0, 0)" });
+        domStyle.set(this.foreElement, { transform: "translate3d(" + pos + "px, 0, 0)" });
         this.swipedOut = true;
         this.hide(direction);
     }
 
     private hide(direction: Direction) {
-        if (this.options.afterSwipeAction === "reset") {
+        if (this.options.afterSwipeActionRight === "reset" && direction === "right" ||
+            this.options.afterSwipeActionLeft === "reset" && direction === "left") {
             setTimeout(() => {
                 domClass.remove(this.container, "animate");
-                domStyle.set(this.foreComponent, {
+                domStyle.set(this.foreElement, {
                     opacity: 1,
                     transform: "translate3d(0, 0, 0)"
                 });
                 this.options.callback(this.container, direction);
             }, this.options.callbackDelay);
-        } else if (this.options.afterSwipeAction === "hide") {
+        } else if (this.options.afterSwipeActionRight === "hide" && direction === "right" ||
+            this.options.afterSwipeActionLeft === "hide" && direction === "left") {
             setTimeout(() => {
                 domClass.add(this.container, "animate");
                 domStyle.set(this.container, { height: 0 });
@@ -177,22 +185,17 @@ class HammerSwipeOut {
                     this.options.callback(this.container, direction);
                 }, this.removeItemDelay);
             }, this.options.callbackDelay);
-        } else {
-            setTimeout(() => {
-                domClass.remove(this.container, "animate");
-                this.options.callback(this.container, direction);
-            }, this.options.callbackDelay);
         }
     }
 
     private registerExtraEvents() {
-        if (this.options.afterSwipeAction === "hide") {
-            this.foreComponent.addEventListener("transitionend", () => {
+        if (this.options.afterSwipeActionRight === "hide") {
+            this.foreElement.addEventListener("transitionend", () => {
                 if (this.swipedOut) {
                     domStyle.set(this.container, {
                         height: this.container.offsetHeight + "px"
                     });
-                    if (this.backComponent) { domClass.add(this.backComponent, "hide"); }
+                    if (this.backElementRight) { domClass.add(this.backElementRight, "hide"); }
                 }
             });
         }
