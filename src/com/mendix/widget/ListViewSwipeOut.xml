@@ -25,23 +25,13 @@
             <description>Entity type of the list view, passed as context to the action</description>
         </property>
         <property key="actionTriggerDelay" type="integer" required="true" defaultValue="800">
-            <caption>Delay action</caption>
+            <caption>Action delay</caption>
             <category>General</category>
-            <description>Time of the animation in microseconds, after swiping the action is triggered</description>
+            <description>Number of microseconds after swiping to wait before triggering the action</description>
         </property>
         <property key="onSwipeActionRight" type="enumeration" required="true" defaultValue="disabled">
             <caption>On swipe right</caption>
             <category>Swipe right</category>
-            <description>Action take on swipe</description>
-            <enumerationValues>
-                <enumerationValue key="disabled">Do nothing</enumerationValue>
-                <enumerationValue key="showPage">Show a page</enumerationValue>
-                <enumerationValue key="callMicroflow">Call a microflow</enumerationValue>
-            </enumerationValues>
-        </property>
-        <property key="onSwipeActionLeft" type="enumeration" required="true" defaultValue="disabled">
-            <caption>On swipe left</caption>
-            <category>Swipe left</category>
             <description>Action take on swipe</description>
             <enumerationValues>
                 <enumerationValue key="disabled">Do nothing</enumerationValue>
@@ -54,15 +44,45 @@
             <category>Swipe right</category>
             <description>Optional name of the component shown as background during swiping</description>
         </property>
-        <property key="backgroundNameLeft" type="string" required="false">
-            <caption>Background left</caption>
-            <category>Swipe left</category>
-            <description>Optional name of the component shown as background during swiping</description>
-        </property>
         <property key="afterSwipeBackgroundNameRight" type="string" required="false">
             <caption>Background after swipe right</caption>
             <category>Swipe right</category>
             <description>Optional name of the component shown as background after swiping is done</description>
+        </property>
+        <property key="onSwipeMicroflowRight" type="microflow" required="false" entityProperty="itemEntity">
+            <caption>Microflow right</caption>
+            <category>Swipe right</category>
+            <description>Microflow to execute after swiping</description>
+            <returnType type="Void"/>
+        </property>
+        <property key="onSwipePageRight" type="form" required="false">
+            <caption>Open page right</caption>
+            <category>Swipe right</category>
+            <description>The page to open after swiping</description>
+        </property>
+        <property key="afterSwipeActionRight" type="enumeration" required="true" defaultValue="hide">
+            <caption>After swipe right</caption>
+            <category>Swipe right</category>
+            <description>Visual action to take once swiping is done</description>
+            <enumerationValues>
+                <enumerationValue key="hide">Hide</enumerationValue>
+                <enumerationValue key="reset">Reset</enumerationValue>
+            </enumerationValues>
+        </property>
+        <property key="onSwipeActionLeft" type="enumeration" required="true" defaultValue="disabled">
+            <caption>On swipe left</caption>
+            <category>Swipe left</category>
+            <description>Action take on swipe</description>
+            <enumerationValues>
+                <enumerationValue key="disabled">Do nothing</enumerationValue>
+                <enumerationValue key="showPage">Show a page</enumerationValue>
+                <enumerationValue key="callMicroflow">Call a microflow</enumerationValue>
+            </enumerationValues>
+        </property>
+        <property key="backgroundNameLeft" type="string" required="false">
+            <caption>Background left</caption>
+            <category>Swipe left</category>
+            <description>Optional name of the component shown as background during swiping</description>
         </property>
         <property key="afterSwipeBackgroundNameLeft" type="string" required="false">
             <caption>Background after swipe left</caption>
@@ -75,34 +95,14 @@
             <description>Microflow to execute after swiping</description>
             <returnType type="Void"/>
         </property>
-        <property key="onSwipeMicroflowRight" type="microflow" required="false" entityProperty="itemEntity">
-            <caption>Microflow right</caption>
-            <category>Swipe right</category>
-            <description>Microflow to execute after swiping</description>
-            <returnType type="Void"/>
-        </property>
         <property key="onSwipePageLeft" type="form" required="false">
             <caption>Open page left</caption>
             <category>Swipe left</category>
             <description>The page to open after swiping</description>
         </property>
-        <property key="onSwipePageRight" type="form" required="false">
-            <caption>Open page right</caption>
-            <category>Swipe right</category>
-            <description>The page to open after swiping</description>
-        </property>
         <property key="afterSwipeActionLeft" type="enumeration" required="true" defaultValue="hide">
             <caption>After swipe left</caption>
             <category>Swipe left</category>
-            <description>Visual action to take once swiping is done</description>
-            <enumerationValues>
-                <enumerationValue key="hide">Hide</enumerationValue>
-                <enumerationValue key="reset">Reset</enumerationValue>
-            </enumerationValues>
-        </property>
-        <property key="afterSwipeActionRight" type="enumeration" required="true" defaultValue="hide">
-            <caption>After swipe right</caption>
-            <category>Swipe right</category>
             <description>Visual action to take once swiping is done</description>
             <enumerationValues>
                 <enumerationValue key="hide">Hide</enumerationValue>
