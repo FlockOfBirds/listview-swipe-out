@@ -77,7 +77,7 @@ class HammerSwipe {
         if (name && !element) {
             throw new Error(`no ${displayName} element found with the name ${name}`);
         }
-        if (addClass) {
+        if (element && addClass) {
             domClass.add(element, addClass);
         }
         return element;
@@ -122,17 +122,7 @@ class HammerSwipe {
         const hundredPercent = 100;
         const pos = (this.containerSize / hundredPercent) * currentPercentage;
 
-        if ( pos < 0 ) {
-            domClass.add(this.backElementRight, "hidden");
-            domClass.add(this.afterElementRight, "hidden");
-            domClass.remove(this.backElementLeft, "hidden");
-            domClass.remove(this.afterElementLeft, "hidden");
-        } else {
-            domClass.remove(this.backElementRight, "hidden");
-            domClass.remove(this.afterElementRight, "hidden");
-            domClass.add(this.backElementLeft, "hidden");
-            domClass.add(this.afterElementLeft, "hidden");
-        }
+        this.updateBackground(pos);
 
         if (animate) {
             domClass.add(this.container, "animate");
@@ -152,6 +142,18 @@ class HammerSwipe {
             opacity: this.options.transparentOnSwipe ? 1 - Math.abs(currentPercentage / hundredPercent) : 1,
             transform: "translate3d(" + pos + "px, 0, 0)"
         });
+    }
+
+    private updateBackground(pos: number) {
+        this.afterElementRight && domClass.add(this.afterElementRight, "hidden");
+        this.afterElementLeft && domClass.add(this.afterElementLeft, "hidden");
+        if (pos < 0) {
+            this.backElementRight && this.backElementRight !== this.backElementLeft && domClass.add(this.backElementRight, "hidden");
+            this.backElementLeft && domClass.remove(this.backElementLeft, "hidden");
+        } else {
+            this.backElementRight && domClass.remove(this.backElementRight, "hidden");
+            this.backElementLeft && this.backElementRight !== this.backElementLeft && domClass.add(this.backElementLeft, "hidden");
+        }
     }
 
     private out(direction: Direction) {
@@ -175,6 +177,13 @@ class HammerSwipe {
             }, this.options.callbackDelay);
         } else if (this.options.afterSwipeActionRight === "hide" && direction === "right" ||
             this.options.afterSwipeActionLeft === "hide" && direction === "left") {
+            if (direction === "left") {
+                this.afterElementRight && this.afterElementRight !== this.afterElementLeft && domClass.add(this.afterElementRight, "hidden");
+                this.afterElementLeft && domClass.remove(this.afterElementLeft, "hidden");
+            } else {
+                this.afterElementRight && domClass.remove(this.afterElementRight, "hidden");
+                this.afterElementLeft && this.afterElementRight !== this.afterElementLeft && domClass.add(this.afterElementLeft, "hidden");
+            }
             setTimeout(() => {
                 domClass.add(this.container, "animate");
                 domStyle.set(this.container, { height: 0 });
@@ -196,6 +205,16 @@ class HammerSwipe {
                         height: this.container.offsetHeight + "px"
                     });
                     if (this.backElementRight) { domClass.add(this.backElementRight, "hide"); }
+                }
+            });
+        }
+        if (this.options.afterSwipeActionLeft === "hide") {
+            this.foreElement.addEventListener("transitionend", () => {
+                if (this.swipedOut) {
+                    domStyle.set(this.container, {
+                        height: this.container.offsetHeight + "px"
+                    });
+                    if (this.backElementLeft) { domClass.add(this.backElementLeft, "hide"); }
                 }
             });
         }
