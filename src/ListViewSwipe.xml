@@ -27,7 +27,7 @@
         <property key="actionTriggerDelay" type="integer" required="true" defaultValue="800">
             <caption>Action delay</caption>
             <category>General</category>
-            <description>Number of microseconds after swiping to wait before triggering the action</description>
+            <description>Number of microseconds after swiping to wait before triggering the action, to finish the animation</description>
         </property>
         <property key="onSwipeActionRight" type="enumeration" required="true" defaultValue="disabled">
             <caption>On swipe right</caption>
@@ -47,7 +47,7 @@
         <property key="afterSwipeBackgroundNameRight" type="string" required="false">
             <caption>Background after swipe right</caption>
             <category>Swipe right</category>
-            <description>Optional name of the component shown as background after swiping is done</description>
+            <description>Optional name of the component shown as background after swiping, during hide animation</description>
         </property>
         <property key="onSwipeMicroflowRight" type="microflow" required="false" entityProperty="itemEntity">
             <caption>Microflow right</caption>
@@ -87,7 +87,7 @@
         <property key="afterSwipeBackgroundNameLeft" type="string" required="false">
             <caption>Background after swipe left</caption>
             <category>Swipe left</category>
-            <description>Optional name of the component shown as background after swiping is done</description>
+            <description>Optional name of the component shown as background after swiping, during hide animation</description>
         </property>
         <property key="onSwipeMicroflowLeft" type="microflow" required="false" entityProperty="itemEntity">
             <caption>Microflow left</caption>
