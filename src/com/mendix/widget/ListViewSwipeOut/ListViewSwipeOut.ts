@@ -10,6 +10,13 @@ import { AfterSwipeAction, Direction, HammerSwipeOut, SwipeOutOptions } from "./
 
 import "./ui/ListViewSwipeOut.css";
 
+type OnSwipeAction = "disabled" | "showPage" | "callMicroflow";
+
+interface ListView extends mxui.widget._WidgetBase {
+    datasource: { path: string };
+    _renderData: () => void;
+}
+
 class ListViewSwipeOut extends WidgetBase {
     // Properties from Mendix modeler
     targetName: string;
@@ -17,8 +24,8 @@ class ListViewSwipeOut extends WidgetBase {
     transparentOnSwipe: boolean;
     itemEntity: string;
     actionTriggerDelay: number;
-    onSwipeActionRight: "disabled" | "showPage" | "callMicroflow";
-    onSwipeActionLeft: "disabled" | "showPage" | "callMicroflow";
+    onSwipeActionRight: OnSwipeAction;
+    onSwipeActionLeft: OnSwipeAction;
     onSwipeMicroflowLeft: string;
     onSwipeMicroflowRight: string;
     onSwipePageLeft: string;
@@ -31,7 +38,7 @@ class ListViewSwipeOut extends WidgetBase {
     afterSwipeBackgroundNameLeft: string;
 
     private swipeClass: string;
-    private targetWidget: any;
+    private targetWidget: ListView;
     private targetNode: HTMLElement;
     private contextObject: mendix.lib.MxObject;
 
@@ -107,12 +114,12 @@ class ListViewSwipeOut extends WidgetBase {
             this.showConfigError(`target name "${this.targetName}" is not of the type listview`);
             return false;
         }
-        if (this.targetWidget._renderData === undefined || this.targetWidget.datasource === undefined ||
-            this.targetWidget.datasource.path === undefined) {
-
-            this.showConfigError("this Mendix version is not compatible");
-            window.logger.error("mxui.widget.ListView does not have a _renderData function or datasource.path");
-            return false;
+        if (this.targetWidget._renderData === undefined
+            || this.targetWidget.datasource === undefined
+            || this.targetWidget.datasource.path === undefined) {
+                this.showConfigError("this Mendix version is not compatible");
+                window.logger.error("mxui.widget.ListView does not have a _renderData function or datasource.path");
+                return false;
         }
         const segments = this.targetWidget.datasource.path.split("/");
         const listEntity = segments.length ? segments[segments.length - 1] : "";
@@ -146,7 +153,7 @@ class ListViewSwipeOut extends WidgetBase {
 
     private showConfigError(message: string) {
         window.mx.ui.error(`List view swipe configuration error: \n - ${message}`, true);
-        logger.error(this.id, `configuration error: ${message}`);
+        window.logger.error(this.id, `configuration error: ${message}`); // TODO: why this too?
     }
 
     private handleSwipe(element: HTMLElement, direction: Direction) {
@@ -157,11 +164,12 @@ class ListViewSwipeOut extends WidgetBase {
     }
 
     private callMicroflow(direction: Direction, context: mendix.lib.MxContext) {
-        const microflowRight = direction === "right" && this.onSwipeActionRight === "callMicroflow"
-            ? this.onSwipeMicroflowRight : "";
-        const microflowLeft = direction === "left" && this.onSwipeActionLeft === "callMicroflow"
-            ? this.onSwipeMicroflowLeft : "";
-        const microflow = microflowRight || microflowLeft;
+        let microflow = "";
+        if (direction === "right" && this.onSwipeActionRight === "callMicroflow") {
+            microflow = this.onSwipeMicroflowRight;
+        } else if (direction === "left" && this.onSwipeActionLeft === "callMicroflow") {
+            microflow = this.onSwipeMicroflowLeft;
+        }
 
         if (microflow) {
             window.mx.ui.action(microflow, {
@@ -173,11 +181,12 @@ class ListViewSwipeOut extends WidgetBase {
     }
 
     private showPage(direction: Direction, context: mendix.lib.MxContext) {
-        const pageRight = direction === "right" && this.onSwipeActionRight === "showPage"
-            ? this.onSwipePageRight : "";
-        const pageLeft = direction === "left" && this.onSwipeActionLeft === "showPage"
-            ? this.onSwipePageLeft : "";
-        const page = pageRight || pageLeft;
+        let page = "";
+        if (direction === "right" && this.onSwipeActionRight === "showPage") {
+            page = this.onSwipePageRight;
+        } else if (direction === "left" && this.onSwipeActionLeft === "showPage") {
+            page = this.onSwipePageLeft;
+        }
 
         if (page) {
             window.mx.ui.openForm(page, {
