@@ -8,18 +8,18 @@ module.exports = {
     output: {
         path: path.resolve(__dirname, "dist/tmp"),
         filename: "src/com/mendix/widget/listviewSwipe/ListViewSwipe.js",
-        libraryTarget: "umd",
-        umdNamedDefine: false
+        libraryTarget: "umd"
     },
     resolve: {
-        extensions: [ "", ".ts", ".js", ".json" ]
+        extensions: [ ".ts", ".js", ".json" ]
     },
-    errorDetails: true,
     module: {
-        loaders: [
-            { test: /\.ts$/, loader: "ts-loader" },
-            { test: /\.json$/, loader: "json" },
-            { test: /\.css$/, loader: ExtractTextPlugin.extract("style-loader", "css-loader") }
+        rules: [
+            { test: /\.ts$/, use: "ts-loader" },
+            { test: /\.css$/, loader: ExtractTextPlugin.extract({
+                fallback: "style-loader",
+                use: "css-loader"
+            }) }
         ]
     },
     devtool: "source-map",
@@ -31,7 +31,9 @@ module.exports = {
         ], {
             copyUnmodified: true
         }),
-        new ExtractTextPlugin("./src/com/mendix/widget/listviewswipe/ui/ListViewSwipe.css")
-    ],
-    watch: true
+        new ExtractTextPlugin("./src/com/mendix/widget/listviewswipe/ui/ListViewSwipe.css"),
+        new webpack.LoaderOptionsPlugin({
+            debug: true
+        })
+    ]
 };
