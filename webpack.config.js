@@ -4,10 +4,10 @@ const CopyWebpackPlugin = require("copy-webpack-plugin");
 const ExtractTextPlugin = require("extract-text-webpack-plugin");
 
 module.exports = {
-    entry: "./src/com/mendix/widget/ListViewSwipeOut/ListViewSwipeOut.ts",
+    entry: "./src/ListViewSwipe.ts",
     output: {
         path: path.resolve(__dirname, "dist/tmp"),
-        filename: "src/com/mendix/widget/ListViewSwipeOut/ListViewSwipeOut.js",
+        filename: "src/com/mendix/widget/listviewSwipe/ListViewSwipe.js",
         libraryTarget: "umd",
         umdNamedDefine: false
     },
@@ -31,7 +31,7 @@ module.exports = {
         ], {
             copyUnmodified: true
         }),
-        new ExtractTextPlugin("./src/com/mendix/widget/ListViewSwipeOut/ui/ListViewSwipeOut.css")
+        new ExtractTextPlugin("./src/com/mendix/widget/listviewswipe/ui/ListViewSwipe.css")
     ],
     watch: true
 };

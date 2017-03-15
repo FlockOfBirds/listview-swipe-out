@@ -1,8 +1,7 @@
 {
-  "name": "listview-swipe-out",
-  "widgetName": "ListviewSwipeOut",
-  "version": "0.1.1",
-  "description": "NOT FOR PRODCTION Swiping listview items out",
+  "name": "listview-swipe",
+  "version": "0.2.0",
+  "description": "Enable swipe action on a list view",
   "copyright": "Flock of Birds",
   "author": "Andries Smit",
   "private": true,

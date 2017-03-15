@@ -2,7 +2,7 @@ import * as Hammer from "hammerjs";
 import * as domClass from "dojo/dom-class";
 import * as domStyle from "dojo/dom-style";
 
-interface SwipeOutOptions {
+interface SwipeOptions {
     afterSwipeActionLeft: AfterSwipeAction;
     afterSwipeActionRight: AfterSwipeAction;
     afterSwipeBackgroundNameLeft?: string;
@@ -19,13 +19,13 @@ interface SwipeOutOptions {
 type Direction = "right" | "left";
 type AfterSwipeAction = "reset" | "hide";
 
-class HammerSwipeOut {
+class HammerSwipe {
     private container: HTMLElement;
     private foreElement: HTMLElement;
     private containerSize: number;
     private containerClass: string;
     private hammer: HammerManager;
-    private options: SwipeOutOptions;
+    private options: SwipeOptions;
     private swipedOut = false;
     private isScrolling = false;
     private backElementRight: HTMLElement;
@@ -41,7 +41,7 @@ class HammerSwipeOut {
     readonly removeItemDelay = 400; // Milliseconds
     readonly moveThreshold = 30; // Pixels
 
-    constructor(container: HTMLElement, options: SwipeOutOptions) {
+    constructor(container: HTMLElement, options: SwipeOptions) {
         this.container = container;
         this.options = options;
         this.containerClass = this.container.className;
@@ -59,14 +59,14 @@ class HammerSwipeOut {
         this.registerExtraEvents();
     }
 
-    private setupPanes(options: SwipeOutOptions) {
+    private setupPanes(options: SwipeOptions) {
         this.foreElement = this.findElement(options.foregroundName, "Foreground", "swipe-foreground");
 
         if (this.foreElement) {
             this.backElementRight = this.findElement(options.backgroundNameRight, "Background right", "swipe-background");
             this.backElementLeft = this.findElement(options.backgroundNameLeft, "Background left", "swipe-background");
-            this.afterElementRight = this.findElement(options.afterSwipeBackgroundNameRight, "After swipe background right", "swipe-background-out");
-            this.afterElementLeft = this.findElement(options.afterSwipeBackgroundNameLeft, "After swipe background left", "swipe-background-out");
+            this.afterElementRight = this.findElement(options.afterSwipeBackgroundNameRight, "After swipe background right", "swipe-background-after");
+            this.afterElementLeft = this.findElement(options.afterSwipeBackgroundNameLeft, "After swipe background left", "swipe-background-after");
         } else {
             this.foreElement = this.container;
         }
@@ -202,4 +202,4 @@ class HammerSwipeOut {
     }
 }
 
-export { HammerSwipeOut, Direction, AfterSwipeAction, SwipeOutOptions };
+export { HammerSwipe, Direction, AfterSwipeAction, SwipeOptions };

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<widget id="com.mendix.widget.ListViewSwipeOut.ListViewSwipeOut" needsEntityContext="false" xmlns="http://www.mendix.com/widget/1.0/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mendix.com/widget/1.0/ ../../../../xsd/widget.xsd">
-    <name>DEMO; ListView swipe out, NOT for PRODUCTION</name>
-    <description>ListView swipe out DEMO, NOT for PRODUCTION</description>
+<widget id="com.mendix.widget.listviewswipe.ListViewSwipe" needsEntityContext="false" xmlns="http://www.mendix.com/widget/1.0/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mendix.com/widget/1.0/ ../../../../xsd/widget.xsd">
+    <name>List view swipe</name>
+    <description>Enable swipe action on a list view</description>
     <icon/>
     <properties>
         <property key="targetName" type="string" required="true">

@@ -1,7 +1,5 @@
-# Listview Swipe Out
+# List view swipe
 
-This is a DEMO widget and is NOT suitable for PRODUCTION.
-No warranty is delivered and no further version other than this demo will be provided.
 
  - The widget is placed below the list view and the list view is identified by a CSS class
  - Items from the list can swiped left and right out of the screen.
@@ -11,8 +9,8 @@ No warranty is delivered and no further version other than this demo will be pro
    - Left background, will be shown below the item, when swiped to the left
    - Right background, will be shown below the item, when swiped to the right 
  - Microflows can be connected 
-   - Action left swipe out 
-   - Action right swipe out
+   - Action left swipe
+   - Action right swipe
    - A delay can be set before triggering the microflow
  - The after swipe behavior can be selected
    - "Remove": Item will be hidden from the list

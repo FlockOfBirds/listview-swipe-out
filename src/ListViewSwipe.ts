@@ -6,9 +6,9 @@ import * as dojoAspect from "dojo/aspect";
 import * as domClass from "dojo/dom-class";
 
 import * as Hammer from "hammerjs";
-import { AfterSwipeAction, Direction, HammerSwipeOut, SwipeOutOptions } from "./HammerSwipeOut";
+import { AfterSwipeAction, Direction, HammerSwipe, SwipeOptions } from "./HammerSwipe";
 
-import "./ui/ListViewSwipeOut.css";
+import "./ui/ListViewSwipe.css";
 
 type OnSwipeAction = "disabled" | "showPage" | "callMicroflow";
 
@@ -17,7 +17,7 @@ interface ListView extends mxui.widget._WidgetBase {
     _renderData: () => void;
 }
 
-class ListViewSwipeOut extends WidgetBase {
+class ListViewSwipe extends WidgetBase {
     // Properties from Mendix modeler
     targetName: string;
     foregroundName: string;
@@ -43,7 +43,7 @@ class ListViewSwipeOut extends WidgetBase {
     private contextObject: mendix.lib.MxObject;
 
     postCreate() {
-        this.swipeClass = "swipe-listview-out";
+        this.swipeClass = "widget-listview-swipe";
         this.targetNode = this.findTargetNode(this.targetName);
         if (this.validateConfig()) {
             this.targetWidget = registry.byNode(this.targetNode);
@@ -64,7 +64,7 @@ class ListViewSwipeOut extends WidgetBase {
             }
 
             if (direction) {
-                const swipeOutOptions: SwipeOutOptions = {
+                const swipeOutOptions: SwipeOptions = {
                     afterSwipeActionLeft: this.afterSwipeActionLeft,
                     afterSwipeActionRight: this.afterSwipeActionRight,
                     afterSwipeBackgroundNameLeft: this.afterSwipeBackgroundNameLeft,
@@ -81,7 +81,7 @@ class ListViewSwipeOut extends WidgetBase {
                 dojoAspect.after(this.targetWidget, "_renderData", () => {
                     try {
                         Hammer.each(this.targetNode.querySelectorAll(".mx-listview-item"), (container: HTMLElement) => {
-                            new HammerSwipeOut(container, swipeOutOptions);
+                            new HammerSwipe(container, swipeOutOptions);
                         }, this);
                     } catch (error) {
                         this.showConfigError(error.message);
@@ -207,7 +207,7 @@ class ListViewSwipeOut extends WidgetBase {
 // Declare widget prototype the Dojo way
 // Thanks to https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/dojo/README.md
 // tslint:disable : only-arrow-functions
-dojoDeclare("com.mendix.widget.ListViewSwipeOut.ListViewSwipeOut", [ WidgetBase ], function(Source: any) {
+dojoDeclare("com.mendix.widget.listviewswipe.ListViewSwipe", [ WidgetBase ], function(Source: any) {
     const result: any = {};
     for (const property in Source.prototype) {
         if (property !== "constructor" && Source.prototype.hasOwnProperty(property)) {
@@ -215,4 +215,4 @@ dojoDeclare("com.mendix.widget.ListViewSwipeOut.ListViewSwipeOut", [ WidgetBase 
         }
     }
     return result;
-}(ListViewSwipeOut));
+}(ListViewSwipe));
