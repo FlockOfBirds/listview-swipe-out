@@ -124,8 +124,8 @@ class ListViewSwipe extends WidgetBase {
         const segments = this.targetWidget.datasource.path.split("/");
         const listEntity = segments.length ? segments[segments.length - 1] : "";
         if (listEntity !== this.itemEntity) {
-            window.mx.ui.error(`Listview swipe out: configuration entity ${this.itemEntity} does not 
-            match the listview entity ${listEntity} of ${this.targetName}`, true);
+            this.showConfigError(`entity ${this.itemEntity} does not 
+            match the listview entity ${listEntity} of ${this.targetName}`);
             return false;
         }
         if (this.onSwipeActionRight === "callMicroflow" && !this.onSwipeMicroflowRight) {
@@ -153,7 +153,7 @@ class ListViewSwipe extends WidgetBase {
 
     private showConfigError(message: string) {
         window.mx.ui.error(`List view swipe configuration error: \n - ${message}`, true);
-        window.logger.error(this.id, `configuration error: ${message}`); // TODO: why this too?
+        window.logger.error(this.id, `configuration error: ${message}`);
     }
 
     private handleSwipe(element: HTMLElement, direction: Direction) {
