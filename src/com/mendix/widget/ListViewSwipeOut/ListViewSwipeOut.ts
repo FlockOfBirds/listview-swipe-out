@@ -77,9 +77,8 @@ class ListViewSwipeOut extends WidgetBase {
                             new HammerSwipeOut(container, swipeOutOptions);
                         }, this);
                     } catch (error) {
-                        window.mx.ui.error(error.message, true);
+                        this.showConfigError(error.message);
                     }
-
                 });
             }
         }
@@ -100,20 +99,19 @@ class ListViewSwipeOut extends WidgetBase {
 
     private validateConfig(): boolean {
         if (!this.targetNode) {
-            window.mx.ui.error(`Listview swipe out: unable to find listview with the name "${this.targetName}"`);
+            this.showConfigError(`unable to find listview with the name "${this.targetName}"`);
             return false;
         }
         this.targetWidget = registry.byNode(this.targetNode);
         if (!this.targetWidget || this.targetWidget.declaredClass !== "mxui.widget.ListView") {
-            window.mx.ui.error(`Listview swipe out: configuration target name "${this.targetName}" 
-            is not of the type listview`);
+            this.showConfigError(`target name "${this.targetName}" is not of the type listview`);
             return false;
         }
         if (this.targetWidget._renderData === undefined || this.targetWidget.datasource === undefined ||
             this.targetWidget.datasource.path === undefined) {
 
-            window.mx.ui.error("Listview swipe out: this Mendix version is not compatible", true);
-            window.logger.error("mxui.widget.ListView does not have a _renderData function or or .datasource.path");
+            this.showConfigError("this Mendix version is not compatible");
+            window.logger.error("mxui.widget.ListView does not have a _renderData function or datasource.path");
             return false;
         }
         const segments = this.targetWidget.datasource.path.split("/");
@@ -124,26 +122,31 @@ class ListViewSwipeOut extends WidgetBase {
             return false;
         }
         if (this.onSwipeActionRight === "callMicroflow" && !this.onSwipeMicroflowRight) {
-            window.mx.ui.error("Listview swipe out: no right microflow is setup", true);
+            this.showConfigError("no right microflow is setup");
             return false;
         }
         if (this.onSwipeActionLeft === "callMicroflow" && !this.onSwipeMicroflowLeft) {
-            window.mx.ui.error("Listview swipe out: no left microflow is setup", true);
+            this.showConfigError("no left microflow is setup");
             return false;
         }
         if (this.onSwipeActionRight === "showPage" && !this.onSwipePageRight) {
-            window.mx.ui.error("Listview swipe out: no right page is setup", true);
+            this.showConfigError("no right page is setup");
             return false;
         }
         if (this.onSwipeActionLeft === "showPage" && !this.onSwipePageLeft) {
-            window.mx.ui.error("Listview swipe out: no left page is setup", true);
+            this.showConfigError("no left page is setup");
             return false;
         }
         if (this.onSwipeActionLeft === "disabled" && this.onSwipeActionRight === "disabled") {
-            window.mx.ui.error("Listview swipe out: no swipe action left or right selected", true);
+            this.showConfigError("no swipe action left or right selected");
             return false;
         }
         return true;
+    }
+
+    private showConfigError(message: string) {
+        window.mx.ui.error(`List view swipe configuration error: \n - ${message}`, true);
+        logger.error(this.id, `configuration error: ${message}`);
     }
 
     private handleSwipe(element: HTMLElement, direction: Direction) {

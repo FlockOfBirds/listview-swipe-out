@@ -75,7 +75,7 @@ class HammerSwipeOut {
     private findElement(name: string, displayName: string, addClass?: string): HTMLElement | null {
         const element = name ? this.container.querySelector(`.mx-name-${name}`) as HTMLElement : null;
         if (name && !element) {
-            throw new Error(`No ${displayName} element found with the name ${name}`);
+            throw new Error(`no ${displayName} element found with the name ${name}`);
         }
         if (addClass) {
             domClass.add(element, addClass);
