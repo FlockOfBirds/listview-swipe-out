@@ -4,6 +4,7 @@ import * as WidgetBase from "mxui/widget/_WidgetBase";
 import * as registry from "dijit/registry";
 import * as dojoAspect from "dojo/aspect";
 import * as domClass from "dojo/dom-class";
+import * as domConstruct from "dojo/dom-construct";
 
 import * as Hammer from "hammerjs";
 import { AfterSwipeAction, Direction, HammerSwipe, SwipeOptions } from "./HammerSwipe";
@@ -15,6 +16,8 @@ type OnSwipeAction = "disabled" | "showPage" | "callMicroflow";
 interface ListView extends mxui.widget._WidgetBase {
     datasource: { path: string };
     _renderData: () => void;
+    // Custom property to check single connected widget to a listview, preventing copy past mistakes
+    connectListviewSwipeWidget: string;
 }
 
 class ListViewSwipe extends WidgetBase {
@@ -64,7 +67,7 @@ class ListViewSwipe extends WidgetBase {
             }
 
             if (direction) {
-                const swipeOutOptions: SwipeOptions = {
+                const swipeOptions: SwipeOptions = {
                     afterSwipeActionLeft: this.afterSwipeActionLeft,
                     afterSwipeActionRight: this.afterSwipeActionRight,
                     afterSwipeBackgroundNameLeft: this.afterSwipeBackgroundNameLeft,
@@ -81,7 +84,7 @@ class ListViewSwipe extends WidgetBase {
                 dojoAspect.after(this.targetWidget, "_renderData", () => {
                     try {
                         Hammer.each(this.targetNode.querySelectorAll(".mx-listview-item"), (container: HTMLElement) => {
-                            new HammerSwipe(container, swipeOutOptions);
+                            new HammerSwipe(container, swipeOptions);
                         }, this);
                     } catch (error) {
                         this.showConfigError(error.message);
@@ -104,13 +107,32 @@ class ListViewSwipe extends WidgetBase {
         return targetNode;
     }
 
+    private isDescendant(parent: HTMLElement, child: HTMLElement) {
+        let node = child.parentNode;
+        while (node != null) {
+            if (node === parent) {
+                return true;
+            }
+            node = node.parentNode;
+        }
+        return false;
+    }
+
     private validateConfig(): boolean {
         if (!this.targetNode) {
             this.showConfigError(`unable to find listview with the name "${this.targetName}"`);
             return false;
         }
+        if (this.isDescendant(this.targetNode, this.domNode)) {
+            this.showConfigError("widget should not be placed inside the list view, move it just below");
+            return false;
+        }
         this.targetWidget = registry.byNode(this.targetNode);
-        if (!this.targetWidget || this.targetWidget.declaredClass !== "mxui.widget.ListView") {
+        if (!this.targetWidget) {
+            this.showConfigError(`list view should be placed below the list view, in the same context`);
+            return false;
+        }
+        if (this.targetWidget.declaredClass !== "mxui.widget.ListView") {
             this.showConfigError(`target name "${this.targetName}" is not of the type listview`);
             return false;
         }
@@ -121,6 +143,13 @@ class ListViewSwipe extends WidgetBase {
                 window.logger.error("mxui.widget.ListView does not have a _renderData function or datasource.path");
                 return false;
         }
+        if (this.targetWidget.connectListviewSwipeWidget) {
+            this.showConfigError(`list view "${this.targetName}" can only have on swipe widget,
+            it is already connected to "${this.targetWidget.connectListviewSwipeWidget}"`);
+            return false;
+        }
+        this.targetWidget.connectListviewSwipeWidget = this.id;
+
         const segments = this.targetWidget.datasource.path.split("/");
         const listEntity = segments.length ? segments[segments.length - 1] : "";
         if (listEntity !== this.itemEntity) {
@@ -152,7 +181,9 @@ class ListViewSwipe extends WidgetBase {
     }
 
     private showConfigError(message: string) {
-        window.mx.ui.error(`List view swipe configuration error: \n - ${message}`, true);
+        // window.mx.ui.error(`List view swipe configuration error: \n - ${message}`, true);
+        domConstruct.place(`<div class='alert alert-danger'>List view swipe configuration error:<br>
+             - ${message}</div>`, this.domNode, "only");
         window.logger.error(this.id, `configuration error: ${message}`);
     }
 
