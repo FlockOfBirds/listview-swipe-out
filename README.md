@@ -5,11 +5,12 @@ Enable swipe action on a list view
  - Open Page after an item is swiped
  - Execute a microflow after an item is swiped
  - Make item gradually transparent during swiping
- - Animate hide of the item after swipe
-   - or reset it to original position
+ - Animate hide of the item after swipe (for delete)
+   - or reset it to original position (for open page)
  - Add background in a list view item
  - Add background to be shown after swipe
- - Items swiped out less the 50% will be canceled
+ - Items swiped out less the 20% will be canceled
+ - List view click action and button on the foreground can be used as normal
 
 ## Dependencies
 Mendix 6.
@@ -33,8 +34,18 @@ http://listviewswipeout.mxapps.io
 
 <img src="/assets/ListViewSwipeAdvanced.png" width="250">
 
+ - Default style, could be overwritten in CSS:
+    - The 'foreground' will white #FFFFF
+    - The 'background' will light light gray #d3d3d3
+    - The 'background after swipe' gray #808080
+  - Custom style applied to the .mx-listview-item should also be applied to:
+    - .swipe-foreground
+    - .swipe-background
+    - .swipe-background-after
+
 ## Known issues
  - Swipe should be horizontal. When moved too much, it will cancel the swipe.
+ - The 'Open page' should contain a page that has a dataview of the type 'Item entity' or non at all. However this is not check by the modeler nor the widget in runtime.
 
 ## Issues
 Please report issues at https://github.com/mendixlabs/listview-swipe/issues
