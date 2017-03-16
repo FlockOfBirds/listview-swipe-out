@@ -14,12 +14,14 @@
     position: relative;
     z-index: 30;
     height: 100%;
+    background-color: #ffffff;
 }
 
 .widget-listview-swipe .swipe-background {
     width: 100%;
     height: 100%;
     position: absolute;
+    background-color: #d3d3d3;
     top: 0;
     left: 0;
     z-index: 20;
@@ -29,6 +31,7 @@
     width: 100%;
     height: 100%;
     position: absolute;
+    background-color: #808080;
     top: 0;
     left: 0;
     z-index: 10;
